@@ -2,10 +2,20 @@ body {
     font: 0.9em sans-serif;
 }
 
-.records {
-    display: inline-block;
-    width: auto;
+@media (max-aspect-ratio: 1/1) {
+    .records {
+        display: inline-block;
+        width: 100%;
+    }
 }
+
+@media (min-aspect-ratio: 1/1) {
+    .records {
+        display: inline-block;
+        width: 50%;
+    }
+}
+
 
 .record {
     padding: 4px 8px 4px 8px;
@@ -14,7 +24,6 @@ body {
     border-radius: 8px;
     margin: 8px;
     box-shadow: 2px 2px 4px #00000033;
-    grid-template-columns: auto auto minmax(0, 1fr);
 }
 
 .record:hover {
@@ -36,7 +45,6 @@ body {
     grid-column-end: 4;
     grid-row-start: 1;
     grid-row-end: 2;
-    width: 200px;
     font-size: 1.1em;
     text-align: right;
 }
@@ -48,7 +56,6 @@ body {
     grid-column-end: 2;
     grid-row-start: 2;
     grid-row-end: 3;
-    width: 100px;
     text-align: left;
 }
 
@@ -59,24 +66,22 @@ body {
     grid-column-end: 2;
     grid-row-start: 2;
     grid-row-end: 3;
-    width: 100px;
     text-align: left;
 }
 
 .temperature {
-    grid-column-start: 2;
+    grid-column-start: 1;
     grid-column-end: 4;
-    grid-row-start: 2;
-    grid-row-end: 3;
-    text-align: left;
+    grid-row-start: 3;
+    grid-row-end: 4;
+    text-align: center;
 }
 
 .time {
-    grid-column-start: 2;
-    grid-column-end: 3;
-    grid-row-start: 3;
-    grid-row-end: 4;
-    width: 200px;
+    grid-column-start: 1;
+    grid-column-end: 4;
+    grid-row-start: 4;
+    grid-row-end: 5;
     font-size: 0.8em;
-    text-align: left;
+    text-align: center;
 }
