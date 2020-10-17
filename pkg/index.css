@@ -1,5 +1,19 @@
-body {
-    font: 0.9em sans-serif;
+@media (max-width: 960px) {
+    body {
+        font: 12px sans-serif;
+    }
+}
+
+@media (min-width: 960px) {
+    body {
+        font: 18px sans-serif;
+    }
+}
+
+@media (min-width: 1921px) {
+    body {
+        font: 24px sans-serif;
+    }
 }
 
 @media (max-aspect-ratio: 1/1) {
