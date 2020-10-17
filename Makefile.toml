@@ -1,6 +1,6 @@
-[tasks.wasm-pack]
+[tasks.wasm-pack-dev]
 command = "wasm-pack"
-args = ["build", "--target", "web"]
+args = ["build", "--target", "web", "--dev"]
 watch = true
 
 [tasks.run-dev]

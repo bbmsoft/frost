@@ -9,7 +9,7 @@ pub struct Frost {
     link: ComponentLink<Self>,
     waiting_for_location: bool,
     pos: Option<(f32, f32)>,
-    weather_data: Option<brightsky_rs::Response>,
+    weather_data: Option<brtsky::Response>,
     location_error: Option<String>,
     fetch_error: Option<String>,
     parse_error: Option<String>,
@@ -40,7 +40,7 @@ pub enum Msg {
     WaitingForLocation,
     LocationFailed(String),
     GotLocation((f32, f32)),
-    WeatherDataArrived(brightsky_rs::Response),
+    WeatherDataArrived(brtsky::Response),
     WeatherDataFetchError(String),
     WeatherDataParseError(String),
 }
@@ -204,7 +204,7 @@ fn fetch_weather_data(
     Ok(FetchService::fetch(request, callback)?)
 }
 
-fn format_weather_data(response: &brightsky_rs::Response) -> Vec<VNode> {
+fn format_weather_data(response: &brtsky::Response) -> Vec<VNode> {
     let now: DateTime<Utc> = Utc::now();
 
     let mut out = Vec::new();

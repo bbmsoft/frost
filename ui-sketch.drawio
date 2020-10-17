@@ -1,0 +1,91 @@
+<mxfile host="cd9639f9-3e8f-419f-9b66-b5dd68b63c95" modified="2020-10-17T10:55:59.245Z" agent="5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) code-oss/1.49.3 Chrome/83.0.4103.122 Electron/9.3.2 Safari/537.36" etag="SItGXfU_ow2SHlHRZnur" version="13.6.5">
+    <diagram id="rFaG-osbLRS8maqrOyLh" name="Page-1">
+        <mxGraphModel dx="1018" dy="554" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="uamsMWHpqfbs0Cu7vlH7-1" value="" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="90" y="100" width="630" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="uamsMWHpqfbs0Cu7vlH7-4" value="&amp;nbsp; BAMBERG" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=24;fontStyle=1" parent="1" vertex="1">
+                    <mxGeometry x="90" y="100" width="380" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="uamsMWHpqfbs0Cu7vlH7-5" value="21.10.2020 - 22.10.2020&amp;nbsp;&amp;nbsp;&amp;nbsp; " style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=18;" parent="1" vertex="1">
+                    <mxGeometry x="470" y="100" width="250" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="uamsMWHpqfbs0Cu7vlH7-10" value="&lt;div align=&quot;left&quot;&gt;&amp;nbsp;&amp;nbsp; &lt;font&gt;&lt;b&gt;GEFAHR&lt;/b&gt;&lt;br&gt;&lt;/font&gt;&lt;/div&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=18;fontColor=#FF6666;" parent="1" vertex="1">
+                    <mxGeometry x="90" y="160" width="150" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="uamsMWHpqfbs0Cu7vlH7-11" value="Temperatur sinkt bis -1.2 °C" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=18;" parent="1" vertex="1">
+                    <mxGeometry x="240" y="160" width="480" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="uamsMWHpqfbs0Cu7vlH7-12" value="&lt;div style=&quot;font-size: 12px&quot;&gt;zwischen 00:00 Uhr und 3:00 Uhr&lt;br&gt;&lt;/div&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=18;" parent="1" vertex="1">
+                    <mxGeometry x="270" y="190" width="450" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="uamsMWHpqfbs0Cu7vlH7-14" value="" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="90" y="230" width="630" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="uamsMWHpqfbs0Cu7vlH7-15" value="&amp;nbsp; BAMBERG" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=24;fontStyle=1" parent="1" vertex="1">
+                    <mxGeometry x="90" y="230" width="380" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="uamsMWHpqfbs0Cu7vlH7-16" value="22.10.2020 - 23.10.2020&amp;nbsp;&amp;nbsp;&amp;nbsp; " style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=18;" parent="1" vertex="1">
+                    <mxGeometry x="470" y="230" width="250" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="uamsMWHpqfbs0Cu7vlH7-17" value="&amp;nbsp;&amp;nbsp; WARNUNG" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=18;fontStyle=1;fontColor=#FFB366;" parent="1" vertex="1">
+                    <mxGeometry x="90" y="290" width="150" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="uamsMWHpqfbs0Cu7vlH7-18" value="Temperatur sinkt bis 4.0 °C" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=18;" parent="1" vertex="1">
+                    <mxGeometry x="240" y="290" width="480" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="uamsMWHpqfbs0Cu7vlH7-19" value="&lt;div style=&quot;font-size: 12px&quot;&gt;zwischen 23:00 Uhr und 4:00 Uhr&lt;br&gt;&lt;/div&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=18;" parent="1" vertex="1">
+                    <mxGeometry x="270" y="320" width="450" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="uamsMWHpqfbs0Cu7vlH7-23" value="" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="90" y="360" width="630" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="uamsMWHpqfbs0Cu7vlH7-24" value="&amp;nbsp; BAMBERG" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=24;fontStyle=1" parent="1" vertex="1">
+                    <mxGeometry x="90" y="360" width="380" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="uamsMWHpqfbs0Cu7vlH7-25" value="24.10.2020 - 25.10.2020&amp;nbsp;&amp;nbsp;&amp;nbsp; " style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=18;" parent="1" vertex="1">
+                    <mxGeometry x="470" y="360" width="250" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="uamsMWHpqfbs0Cu7vlH7-29" value="&lt;div align=&quot;left&quot;&gt;&amp;nbsp;&amp;nbsp; &lt;font&gt;&lt;b&gt;GEFAHR&lt;/b&gt;&lt;br&gt;&lt;/font&gt;&lt;/div&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=18;fontColor=#FF6666;" parent="1" vertex="1">
+                    <mxGeometry x="90" y="420" width="150" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="uamsMWHpqfbs0Cu7vlH7-30" value="Temperatur sinkt bis -0.1 °C" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=18;" parent="1" vertex="1">
+                    <mxGeometry x="240" y="420" width="480" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="uamsMWHpqfbs0Cu7vlH7-31" value="&lt;div style=&quot;font-size: 12px&quot;&gt;zwischen 01:00 Uhr und 2:00 Uhr&lt;br&gt;&lt;/div&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=18;" parent="1" vertex="1">
+                    <mxGeometry x="270" y="450" width="450" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="uamsMWHpqfbs0Cu7vlH7-32" value="" style="endArrow=none;html=1;fontSize=18;" parent="1" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="10" y="80" as="sourcePoint"/>
+                        <mxPoint x="840" y="80" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="uamsMWHpqfbs0Cu7vlH7-34" value="FROST" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=32;" parent="1" vertex="1">
+                    <mxGeometry x="90" y="10" width="750" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="uamsMWHpqfbs0Cu7vlH7-35" value="" style="endArrow=none;html=1;fontSize=32;strokeWidth=3;" parent="1" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="15" y="30" as="sourcePoint"/>
+                        <mxPoint x="65" y="30" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="uamsMWHpqfbs0Cu7vlH7-36" value="" style="endArrow=none;html=1;fontSize=32;strokeWidth=3;" parent="1" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="15" y="40" as="sourcePoint"/>
+                        <mxPoint x="65" y="40" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="uamsMWHpqfbs0Cu7vlH7-37" value="" style="endArrow=none;html=1;fontSize=32;strokeWidth=3;" parent="1" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="15" y="50" as="sourcePoint"/>
+                        <mxPoint x="65" y="50" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
