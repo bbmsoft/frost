@@ -3,7 +3,20 @@ command = "wasm-pack"
 args = ["build", "--target", "web", "--dev"]
 watch = true
 
+[tasks.wasm-pack]
+command = "wasm-pack"
+args = ["build", "--target", "web"]
+
 [tasks.run-dev]
 command = "cargo"
 args = ["run"]
 watch = true
+
+[tasks.build]
+dependencies = ["wasm-pack"]
+command = "cargo"
+args = ["build", "--release"]
+
+[tasks.launch]
+dependencies = ["build"]
+command = "target/release/frost"
