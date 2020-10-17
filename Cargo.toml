@@ -7,6 +7,7 @@ description = "A weather forecast web app focused on warning users about low tem
 repository = "https://github.com/bbmsoft/frost.git"
 license = "MIT OR Apache-2.0"
 keywords = ["weather", "webapp"]
+homepage = "https://frost.bbmsoft.net/"
 
 [badges]
 travis-ci = { repository = "https://github.com/bbmsoft/frost.git", branch = "master" }
