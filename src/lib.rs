@@ -97,7 +97,8 @@ pub async fn get_location_failed(code: u16) {
     let message = match code {
         1 => "User denied the request for Geolocation.",
         2 => "Location information is unavailable.",
-        3 => "The request to get user location timed out.",
+        3 => "The request to get the user location timed out.",
+        4 => "Geolocation is not supported by the browser.",
         _ => "An unknown error occurred.",
     };
     let props = Props {

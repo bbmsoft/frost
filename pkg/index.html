@@ -12,16 +12,20 @@
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 position => start(position.coords.latitude, position.coords.longitude),
-                e => get_location_failed(e.code),
-                { timeout: 3000, enableHighAccuracy: true }
+                e => {
+                    alert(`Failed to get location: ${e.message}.`)
+                    get_location_failed(e.code)
+                },
+                { timeout: 3000, enableHighAccuracy: false, maximumAge: 3600 }
             )
         } else {
-            get_location_failed("geolocation not supported by browser")
+            alert(`Failed to get location: Geolocation not supported by browser.`)
+            get_location_failed(4)
         }
     </script>
     <link rel="stylesheet" type="text/css" href="index.css">
 </head>
 
-<body></body>
+<body>WASM did not load.</body>
 
 </html>
