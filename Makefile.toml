@@ -1,0 +1,9 @@
+[tasks.wasm-pack]
+command = "wasm-pack"
+args = ["build", "--target", "web"]
+watch = true
+
+[tasks.run-dev]
+command = "cargo"
+args = ["run"]
+watch = true

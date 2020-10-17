@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Frost</title>
+    <script type="module">
+        import init from "/frost_js.js"
+        import { start, get_location_failed } from "/frost_js.js"
+        init()
+        const navigator = window.navigator
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                position => start(position.coords.latitude, position.coords.longitude),
+                e => get_location_failed(e.code),
+                { timeout: 3000, enableHighAccuracy: true }
+            )
+        } else {
+            get_location_failed("geolocation not supported by browser")
+        }
+    </script>
+    <link rel="stylesheet" type="text/css" href="index.css">
+</head>
+
+<body></body>
+
+</html>
