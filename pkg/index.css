@@ -2,17 +2,23 @@ body {
     font: 0.9em sans-serif;
 }
 
+.records {
+    display: inline-block;
+    width: auto;
+}
+
 .record {
     padding: 4px 8px 4px 8px;
     display: grid;
-    border: 1px solid black;
+    background-color: aliceblue;
     border-radius: 8px;
     margin: 8px;
-    width: 640px;
+    box-shadow: 2px 2px 4px #00000033;
+    grid-template-columns: auto auto minmax(0, 1fr);
 }
 
 .record:hover {
-    background-color: aliceblue;
+    background-color: rgb(227, 242, 255);
 }
 
 .location {
@@ -22,6 +28,7 @@ body {
     grid-row-end: 2;
     font-weight: bold;
     font-size: 1.1em;
+    text-align: left;
 }
 
 .date {
@@ -29,8 +36,9 @@ body {
     grid-column-end: 4;
     grid-row-start: 1;
     grid-row-end: 2;
-    width: 300px;
+    width: 200px;
     font-size: 1.1em;
+    text-align: right;
 }
 
 .warning {
@@ -40,7 +48,8 @@ body {
     grid-column-end: 2;
     grid-row-start: 2;
     grid-row-end: 3;
-    width: 150px;
+    width: 100px;
+    text-align: left;
 }
 
 .danger {
@@ -50,15 +59,16 @@ body {
     grid-column-end: 2;
     grid-row-start: 2;
     grid-row-end: 3;
-    width: 150px;
+    width: 100px;
+    text-align: left;
 }
 
 .temperature {
     grid-column-start: 2;
-    grid-column-end: 3;
+    grid-column-end: 4;
     grid-row-start: 2;
     grid-row-end: 3;
-    width: 300px;
+    text-align: left;
 }
 
 .time {
@@ -66,6 +76,7 @@ body {
     grid-column-end: 3;
     grid-row-start: 3;
     grid-row-end: 4;
-    width: 300px;
+    width: 200px;
     font-size: 0.8em;
+    text-align: left;
 }

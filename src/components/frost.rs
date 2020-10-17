@@ -66,7 +66,7 @@ impl Component for Frost {
             Some(WeatherDataStatus::WeatherDataRetrieved(data)) => {
                 let records = format_weather_data(&data);
                 html! {
-                    <div>
+                    <div class="records">
                         { records }
                     </div>
                 }
