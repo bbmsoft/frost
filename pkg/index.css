@@ -1,17 +1,71 @@
 body {
-    font: 11pt sans-serif;
+    font: 0.9em sans-serif;
 }
 
 .record {
     padding: 4px 8px 4px 8px;
+    display: grid;
+    border: 1px solid black;
+    border-radius: 8px;
+    margin: 8px;
+    width: 640px;
+}
+
+.record:hover {
+    background-color: aliceblue;
+}
+
+.location {
+    grid-column-start: 1;
+    grid-column-end: 3;
+    grid-row-start: 1;
+    grid-row-end: 2;
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+.date {
+    grid-column-start: 3;
+    grid-column-end: 4;
+    grid-row-start: 1;
+    grid-row-end: 2;
+    width: 300px;
+    font-size: 1.1em;
 }
 
 .warning {
     color: orange;
     font-weight: bold;
+    grid-column-start: 1;
+    grid-column-end: 2;
+    grid-row-start: 2;
+    grid-row-end: 3;
+    width: 150px;
 }
 
 .danger {
-    color: crimson;
+    color: tomato;
     font-weight: bold;
+    grid-column-start: 1;
+    grid-column-end: 2;
+    grid-row-start: 2;
+    grid-row-end: 3;
+    width: 150px;
+}
+
+.temperature {
+    grid-column-start: 2;
+    grid-column-end: 3;
+    grid-row-start: 2;
+    grid-row-end: 3;
+    width: 300px;
+}
+
+.time {
+    grid-column-start: 2;
+    grid-column-end: 3;
+    grid-row-start: 3;
+    grid-row-end: 4;
+    width: 300px;
+    font-size: 0.8em;
 }

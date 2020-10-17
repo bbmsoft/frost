@@ -1,6 +1,6 @@
+use super::super::utils;
 use super::super::{LocationStatus, WeatherDataStatus};
 use super::record::*;
-use chrono::prelude::*;
 use yew::format::Nothing;
 use yew::prelude::*;
 use yew::services::fetch::{FetchService, FetchTask, Request, Response};
@@ -159,29 +159,13 @@ fn fetch_weather_data(
 }
 
 fn format_weather_data(response: &brtsky::Response) -> Vec<VNode> {
-    let now: DateTime<Utc> = Utc::now();
-
     let mut out = Vec::new();
 
-    for data in response
-        .weather_data_sets()
-        .filter(|w| w.weather_data().timestamp > now)
-    {
-        let temp = data.weather_data().temperature;
-        let timestamp = data.weather_data().timestamp;
-        let location = &data.source().station_name;
-
-        if data.weather_data().temperature <= 0.0 {
-            let record = html! {
-                <Record record_type={Type::Danger} temp={temp} timestamp={timestamp} location={location} />
-            };
-            out.push(record);
-        } else if data.weather_data().temperature < 5.0 {
-            let record = html! {
-                <Record record_type={Type::Warning} temp={temp} timestamp={timestamp} location={location} />
-            };
-            out.push(record);
-        }
+    for phase in utils::accumulate_cold_phases(5.0, 0.0, response) {
+        let record = html! {
+            <Record phase={phase} />
+        };
+        out.push(record);
     }
 
     out

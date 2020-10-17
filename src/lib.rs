@@ -1,4 +1,5 @@
 use components::frost::Frost;
+use std::fmt;
 use wasm_bindgen::prelude::*;
 use yew::prelude::*;
 
@@ -10,6 +11,21 @@ mod utils;
 #[cfg(feature = "wee_alloc")]
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum RecordType {
+    Warning,
+    Danger,
+}
+
+impl fmt::Display for RecordType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            RecordType::Warning => write!(f, "warning"),
+            RecordType::Danger => write!(f, "danger"),
+        }
+    }
+}
 
 pub struct Model {
     props: Props,
