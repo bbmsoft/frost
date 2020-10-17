@@ -30,14 +30,26 @@
     }
 }
 
+@media (max-width: 1921px) {
+    .record {
+        padding: 4px 8px 4px 8px;
+        display: grid;
+        background-color: aliceblue;
+        border-radius: 8px;
+        margin: 8px;
+        box-shadow: 2px 2px 4px #00000033;
+    }
+}
 
-.record {
-    padding: 4px 8px 4px 8px;
-    display: grid;
-    background-color: aliceblue;
-    border-radius: 8px;
-    margin: 8px;
-    box-shadow: 2px 2px 4px #00000033;
+@media (min-width: 1921px) {
+    .record {
+        padding: 8px 16px 8px 16px;
+        display: grid;
+        background-color: aliceblue;
+        border-radius: 16px;
+        margin: 16px;
+        box-shadow: 4px 4px 8px #00000033;
+    }
 }
 
 .record:hover {
