@@ -1,3 +1,4 @@
+use super::super::{LocationStatus, WeatherDataStatus};
 use super::record::*;
 use chrono::prelude::*;
 use yew::format::Nothing;
@@ -7,42 +8,28 @@ use yew::virtual_dom::VNode;
 
 pub struct Frost {
     link: ComponentLink<Self>,
-    waiting_for_location: bool,
-    pos: Option<(f32, f32)>,
-    weather_data: Option<brtsky::Response>,
-    location_error: Option<String>,
-    fetch_error: Option<String>,
-    parse_error: Option<String>,
+    props: Props,
     fetch_task: Option<FetchTask>,
 }
 
-#[derive(Debug, Clone, Properties)]
+#[derive(Debug, Clone, Properties, PartialEq)]
 pub struct Props {
-    pub parent_link: ComponentLink<super::super::Model>,
+    pub location: LocationStatus,
+    pub weather: Option<WeatherDataStatus>,
 }
 
 impl Frost {
-    fn new(link: ComponentLink<Self>) -> Self {
+    fn new(link: ComponentLink<Self>, props: Props) -> Self {
         Frost {
             link,
-            waiting_for_location: false,
-            pos: None,
-            weather_data: None,
-            location_error: None,
-            fetch_error: None,
-            parse_error: None,
+            props,
             fetch_task: None,
         }
     }
 }
 
 pub enum Msg {
-    WaitingForLocation,
-    LocationFailed(String),
-    GotLocation((f32, f32)),
-    WeatherDataArrived(brtsky::Response),
-    WeatherDataFetchError(String),
-    WeatherDataParseError(String),
+    WeatherUpdate(WeatherDataStatus),
 }
 
 impl Component for Frost {
@@ -51,127 +38,92 @@ impl Component for Frost {
     type Properties = Props;
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        props
-            .parent_link
-            .send_message(super::super::Msg::FrostCreated(link.clone()));
-        Frost::new(link)
+        let mut frost = Frost::new(link.clone(), props.clone());
+        check_for_weather_update(&mut frost, props.location, link);
+        frost
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
-            Msg::WaitingForLocation => {
-                self.pos = None;
-                self.waiting_for_location = true;
-                self.weather_data = None;
-                self.location_error = None;
-                self.fetch_error = None;
-                self.parse_error = None;
-                self.fetch_task = None;
-            }
-            Msg::LocationFailed(msg) => {
-                self.pos = None;
-                self.waiting_for_location = false;
-                self.location_error = Some(msg);
-                self.weather_data = None;
-                self.fetch_error = None;
-                self.parse_error = None;
-                self.fetch_task = None;
-            }
-            Msg::GotLocation((lat, lon)) => {
-                self.pos = Some((lat, lon));
-                self.waiting_for_location = false;
-                self.weather_data = None;
-                self.location_error = None;
-                self.fetch_error = None;
-                self.parse_error = None;
-                match fetch_weather_data(lat, lon, self.link.clone()) {
-                    Ok(fetch_tak) => {
-                        self.fetch_task = Some(fetch_tak);
-                    }
-                    Err(e) => self
-                        .link
-                        .send_message(Msg::WeatherDataFetchError(e.to_string())),
-                }
-            }
-            Msg::WeatherDataArrived(weather_data) => {
-                self.pos = None;
-                self.waiting_for_location = false;
-                self.weather_data = Some(weather_data);
-                self.location_error = None;
-                self.fetch_error = None;
-                self.parse_error = None;
-                self.fetch_task = None;
-            }
-            Msg::WeatherDataFetchError(e) => {
-                self.pos = None;
-                self.waiting_for_location = false;
-                self.weather_data = None;
-                self.location_error = None;
-                self.fetch_error = Some(e);
-                self.parse_error = None;
-                self.fetch_task = None;
-            }
-            Msg::WeatherDataParseError(e) => {
-                self.pos = None;
-                self.waiting_for_location = false;
-                self.weather_data = None;
-                self.location_error = None;
-                self.fetch_error = None;
-                self.parse_error = Some(e);
-                self.fetch_task = None;
-            }
+            Msg::WeatherUpdate(weather) => self.props.weather = Some(weather),
         }
         true
     }
 
-    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-        false
+    fn change(&mut self, props: Self::Properties) -> ShouldRender {
+        let old_location = self.props.location.clone();
+        self.props = props;
+
+        if self.props.location != old_location {
+            check_for_weather_update(self, self.props.location.clone(), self.link.clone());
+        }
+
+        true
     }
 
     fn view(&self) -> Html {
-        if let Some(_) = self.pos {
-            html! {
+        match &self.props.weather {
+            Some(WeatherDataStatus::WeatherDataRetrieved(data)) => {
+                let records = format_weather_data(&data);
+                html! {
+                    <div>
+                        { records }
+                    </div>
+                }
+            }
+            Some(WeatherDataStatus::WaitingForWeatherData) => html! {
                 <div>
                     {"Fetching weather data..."}
                 </div>
-            }
-        } else if let Some(e) = &self.fetch_error {
-            html! {
+            },
+            Some(WeatherDataStatus::FetchError(e)) => html! {
                 <div>
                     {"Error fetching weather data: "} {e}
                 </div>
-            }
-        } else if let Some(e) = &self.parse_error {
-            html! {
+            },
+            Some(WeatherDataStatus::ParseError(e)) => html! {
                 <div>
                     {"Error parsing weather data: "} {e}
                 </div>
+            },
+            None => match &self.props.location {
+                LocationStatus::WaitingForLocation | LocationStatus::LocationRetrieved(_, _) => {
+                    html! {
+                        <div>
+                            {"Waiting for access to device location..."}
+                        </div>
+                    }
+                }
+                LocationStatus::LocationFailed(_code, msg) => html! {
+                    <div>
+                        {"Device location could not be determined: "} {msg}
+                    </div>
+                },
+                LocationStatus::LocationDisabled => html! {
+                    <div>
+                        {"TODO: enter location manually"}
+                    </div>
+                },
+            },
+        }
+    }
+}
+
+fn check_for_weather_update(
+    frost: &mut Frost,
+    location: LocationStatus,
+    link: ComponentLink<Frost>,
+) {
+    if let LocationStatus::LocationRetrieved(lat, lon) = location {
+        match fetch_weather_data(lat, lon, link.clone()) {
+            Ok(fetch_task) => {
+                // prevent fetch task from being dropped / cancelled
+                frost.fetch_task = Some(fetch_task);
+                link.send_message(Msg::WeatherUpdate(WeatherDataStatus::WaitingForWeatherData))
             }
-        } else if let Some(data) = &self.weather_data {
-            let records = format_weather_data(data);
-            html! {
-                <div>
-                    { records }
-                </div>
-            }
-        } else if self.waiting_for_location {
-            html! {
-                <div>
-                    {"Waiting for access to device location..."}
-                </div>
-            }
-        } else if let Some(msg) = &self.location_error {
-            html! {
-                <div>
-                    {"Device location could not be determined: "} {msg}
-                </div>
-            }
-        } else {
-            html! {
-                <div>
-                    {"Device location could not be determined."}
-                </div>
-            }
+            Err(e) => link.send_message(Msg::WeatherUpdate(WeatherDataStatus::FetchError(
+                e.to_string(),
+            ))),
         }
     }
 }
@@ -186,13 +138,15 @@ fn fetch_weather_data(
         if meta.status.is_success() {
             match data {
                 Ok(data) => match data.parse() {
-                    Ok(response) => Msg::WeatherDataArrived(response),
-                    Err(e) => Msg::WeatherDataParseError(e.to_string()),
+                    Ok(response) => {
+                        Msg::WeatherUpdate(WeatherDataStatus::WeatherDataRetrieved(response))
+                    }
+                    Err(e) => Msg::WeatherUpdate(WeatherDataStatus::ParseError(e.to_string())),
                 },
-                Err(e) => Msg::WeatherDataParseError(e.to_string()),
+                Err(e) => Msg::WeatherUpdate(WeatherDataStatus::ParseError(e.to_string())),
             }
         } else {
-            Msg::WeatherDataFetchError(meta.status.as_str().to_owned())
+            Msg::WeatherUpdate(WeatherDataStatus::FetchError(meta.status.to_string()))
         }
     };
 

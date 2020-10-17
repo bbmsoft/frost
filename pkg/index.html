@@ -6,21 +6,21 @@
     <title>Frost</title>
     <script type="module">
         import init from "/frost.js"
-        import { start, get_location_failed } from "/frost.js"
+        import { set_location, get_location_failed } from "/frost.js"
         init()
         const navigator = window.navigator
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
-                position => start(position.coords.latitude, position.coords.longitude),
+                position => set_location(position.coords.latitude, position.coords.longitude),
                 e => {
                     alert(`Failed to get location: ${e.message}.`)
-                    get_location_failed(e.code)
+                    get_location_failed(e.code, e.message)
                 },
                 { timeout: 3000, enableHighAccuracy: false, maximumAge: 3600 }
             )
         } else {
             alert(`Failed to get location: Geolocation not supported by browser.`)
-            get_location_failed(4)
+            get_location_failed(69, "Geolocation not supported by browser")
         }
     </script>
     <link rel="stylesheet" type="text/css" href="index.css">

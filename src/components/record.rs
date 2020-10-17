@@ -1,14 +1,15 @@
 use chrono::prelude::*;
 use std::fmt;
 use yew::prelude::*;
-#[derive(Debug, Clone, Properties)]
+
+#[derive(Debug, Clone, Properties, PartialEq)]
 pub struct Props {
     pub record_type: Type,
     pub temp: f32,
     pub timestamp: DateTime<FixedOffset>,
     pub location: String,
 }
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Type {
     Warning,
     Danger,

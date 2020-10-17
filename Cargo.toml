@@ -20,11 +20,14 @@ crate-type = ["cdylib", "rlib"]
 default = ["console_error_panic_hook"]
 
 [dependencies]
+
+# brtsky = "0.1"
+brtsky = { path = "../brtsky" }
+
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
 web-sys = { version = "0.3", features = ["Geolocation", "Navigator", "Window", "console"] }
 js-sys = "0.3"
-brtsky = "0.1"
 chrono = { version = "0.4", features = ["wasmbind", "serde"] }
 reqwest = { version = "0.10", features = ["blocking"] }
 yew = "0.17"

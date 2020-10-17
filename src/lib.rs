@@ -12,51 +12,39 @@ mod utils;
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 pub struct Model {
-    link: ComponentLink<Self>,
-    pos: Option<(f32, f32)>,
-    waiting_for_location: bool,
-    location_error: Option<String>,
-}
-pub enum Msg {
-    FrostCreated(ComponentLink<Frost>),
+    props: Props,
 }
 
-#[derive(Debug, Clone, Properties)]
+#[derive(Debug, Clone, Properties, PartialEq)]
 pub struct Props {
-    waiting_for_location: bool,
-    location_access_failed: Option<String>,
-    location: Option<(f32, f32)>,
+    pub location: LocationStatus,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum LocationStatus {
+    WaitingForLocation,
+    LocationFailed(u16, String),
+    LocationRetrieved(f32, f32),
+    LocationDisabled,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum WeatherDataStatus {
+    WaitingForWeatherData,
+    FetchError(String),
+    ParseError(String),
+    WeatherDataRetrieved(brtsky::Response),
 }
 
 impl Component for Model {
-    type Message = Msg;
+    type Message = ();
     type Properties = Props;
 
-    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        Model {
-            link,
-            pos: props.location,
-            waiting_for_location: props.waiting_for_location,
-            location_error: props.location_access_failed,
-        }
+    fn create(props: Self::Properties, _link: ComponentLink<Self>) -> Self {
+        Model { props }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
-        match msg {
-            Msg::FrostCreated(frost_link) => {
-                if let Some(pos) = self.pos {
-                    frost_link.send_message(components::frost::Msg::GotLocation(pos))
-                } else if self.waiting_for_location {
-                    frost_link.send_message(components::frost::Msg::WaitingForLocation)
-                } else if let Some(msg) = &self.location_error {
-                    frost_link.send_message(components::frost::Msg::LocationFailed(msg.to_owned()))
-                } else {
-                    frost_link.send_message(components::frost::Msg::LocationFailed(
-                        "unknown error occurred".to_owned(),
-                    ))
-                }
-            }
-        }
+    fn update(&mut self, _msg: Self::Message) -> ShouldRender {
         false
     }
 
@@ -66,45 +54,32 @@ impl Component for Model {
 
     fn view(&self) -> Html {
         html! {
-            <Frost parent_link={self.link.clone()} />
+            <Frost location={self.props.location.clone()} weather={None} />
         }
     }
 }
 
 #[wasm_bindgen(start)]
-pub async fn requesting_location() {
+pub fn start() {
     utils::set_panic_hook();
     let props = Props {
-        waiting_for_location: true,
-        location_access_failed: None,
-        location: None,
+        location: LocationStatus::WaitingForLocation,
     };
     App::<Model>::new().mount_to_body_with_props(props);
 }
 
 #[wasm_bindgen]
-pub async fn start(lat: f32, lon: f32) {
+pub async fn set_location(lat: f32, lon: f32) {
     let props = Props {
-        waiting_for_location: false,
-        location_access_failed: None,
-        location: Some((lat, lon)),
+        location: LocationStatus::LocationRetrieved(lat, lon),
     };
     App::<Model>::new().mount_to_body_with_props(props);
 }
 
 #[wasm_bindgen]
-pub async fn get_location_failed(code: u16) {
-    let message = match code {
-        1 => "User denied the request for Geolocation.",
-        2 => "Location information is unavailable.",
-        3 => "The request to get the user location timed out.",
-        4 => "Geolocation is not supported by the browser.",
-        _ => "An unknown error occurred.",
-    };
+pub async fn get_location_failed(code: u16, msg: String) {
     let props = Props {
-        waiting_for_location: false,
-        location_access_failed: Some(message.to_owned()),
-        location: None,
+        location: LocationStatus::LocationFailed(code, msg),
     };
     App::<Model>::new().mount_to_body_with_props(props);
 }
