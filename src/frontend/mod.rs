@@ -61,13 +61,13 @@ impl Component for Model {
         let get_current_location = &self.props.get_current_location;
         let click_callback = wrap_js_sys_function(get_current_location, self.link.clone());
         html! {
-            <>
+            <div class="app">
                 <Frost location={self.props.location.clone()} weather={None} />
                 <div class="controls">
                     <button disabled={get_current_location.is_none()} onclick={click_callback}>{"Use current location"}</button>
                     <button disabled=true>{"Select location"}</button>
                 </div>
-            </>
+            </div>
         }
     }
 }
