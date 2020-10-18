@@ -46,7 +46,9 @@ fn weather(
         lon,
         now.to_rfc3339(),
         three_days_from_now.to_rfc3339()
-    );
+    )
+    // TODO escape forbidden characters in a more robust way!
+    .replace("+", "%2b");
 
     debug!("Pulling weather data from {}", url);
 
