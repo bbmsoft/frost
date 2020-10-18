@@ -33,7 +33,6 @@ impl Component for Record {
         let location = &phase.location;
         let date = format_date(&phase);
         let class = phase.record_type.to_string();
-        let class_exp = format!("{}-exp", phase.record_type);
         let type_text = class.to_uppercase();
         let explanation = match phase.record_type {
             crate::common::RecordType::Warning => format!("< {} °C", phase.warning_threshold),
