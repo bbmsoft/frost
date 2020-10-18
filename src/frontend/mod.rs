@@ -39,14 +39,13 @@ impl Component for Model {
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::RequestDeviceLocation(callback) => {
-                use web_sys::console;
                 if let Some(callback) = callback {
                     let this = JsValue::null();
                     if let Err(e) = callback.call0(&this) {
-                        console::log_1(&e);
+                        error!("{:?}", e);
                     }
                 } else {
-                    console::log_1(&"Geolocation not available!".into());
+                    warn!("Geolocation not available!");
                 }
             }
         }
@@ -75,6 +74,7 @@ impl Component for Model {
 #[wasm_bindgen]
 pub fn start(get_current_location: Option<js_sys::Function>) {
     set_panic_hook();
+    wasm_logger::init(wasm_logger::Config::default());
     let props = Props {
         location: LocationStatus::WaitingForLocation,
         get_current_location,
