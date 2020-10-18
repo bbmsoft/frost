@@ -1,40 +1,24 @@
-@media (max-width: 960px) {
+@media (max-width: 480px) {
+    body {
+        font: 8px sans-serif;
+    }
+}
+
+@media (min-width: 480px) {
+    body {
+        font: 10px sans-serif;
+    }
+}
+
+@media (min-width: 961px) {
     body {
         font: 12px sans-serif;
     }
 }
 
-@media (min-width: 960px) {
-    body {
-        font: 18px sans-serif;
-    }
-}
-
-@media (min-width: 1921px) {
-    body {
-        font: 24px sans-serif;
-    }
-}
-
-@media (max-aspect-ratio: 1/1) {
-    .records {
-        display: inline-block;
-        width: 100%;
-    }
-}
-
-@media (min-aspect-ratio: 1/1) {
-    .records {
-        display: inline-block;
-        width: 50%;
-    }
-}
-
-@media (max-width: 1921px) {
+@media (max-width: 1920px) {
     .record {
         padding: 16px 32px 16px 32px;
-        display: grid;
-        background-color: aliceblue;
         border-radius: 8px;
         margin: 16px;
         box-shadow: 2px 2px 4px #00000033;
@@ -42,14 +26,32 @@
 }
 
 @media (min-width: 1921px) {
+    body {
+        font: 24px sans-serif;
+    }
     .record {
         padding: 32px 64px 32px 64px;
-        display: grid;
-        background-color: aliceblue;
         border-radius: 16px;
         margin: 32px;
         box-shadow: 4px 4px 8px #00000033;
     }
+}
+
+.records {
+    width: 100%;
+    display: inline-block;
+}
+
+
+@media (min-width: 1200px) and (min-aspect-ratio: 1/1) {
+    .records {
+        width: 50%;
+    }
+}
+
+.record {
+    display: grid;
+    background-color: aliceblue;
 }
 
 .record:hover {
