@@ -20,7 +20,6 @@
     .record {
         padding: 16px 32px 16px 32px;
         border-radius: 8px;
-        margin-top: 16px;
         box-shadow: 2px 2px 4px #00000033;
     }
 }
@@ -32,7 +31,6 @@
     .record {
         padding: 32px 64px 32px 64px;
         border-radius: 16px;
-        margin-top: 32px;
         box-shadow: 4px 4px 8px #00000033;
     }
 }
@@ -43,24 +41,31 @@
     }
 }
 
-html, body {
+/* html, body {
     height: 100%;
-}
+} */
 
 .app {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: stretch;
     margin-left: auto;
     margin-right: auto;
     padding: 16px;
 }
 
 .records {
-    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: stretch;
 }
 
 .record {
     display: grid;
     background-color: aliceblue;
+    margin-bottom: 16px;
 }
 
 .record:hover {
