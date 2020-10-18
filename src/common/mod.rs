@@ -26,6 +26,8 @@ pub struct ColdPhase {
     pub start: DateTime<Local>,
     pub end: DateTime<Local>,
     pub record_type: RecordType,
+    pub warning_threshold: f32,
+    pub danger_threshold: f32,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

@@ -33,7 +33,12 @@ impl Component for Record {
         let location = &phase.location;
         let date = format_date(&phase);
         let class = phase.record_type.to_string();
+        let class_exp = format!("{}-exp", phase.record_type);
         let type_text = class.to_uppercase();
+        let explanation = match phase.record_type {
+            crate::common::RecordType::Warning => format!("< {} °C", phase.warning_threshold),
+            crate::common::RecordType::Danger => format!("< {} °C", phase.danger_threshold),
+        };
         let temp = format!("Temperature drops as low as {} °C", phase.min_temp);
         let timestamp = format_time(&phase);
 
@@ -41,7 +46,7 @@ impl Component for Record {
             <div class="record">
                 <span class="location">{location}</span>
                 <span class="date">{date}</span>
-                <span class={class}>{type_text}{":"}</span>
+                <span class={class}>{type_text}{": "}{explanation}</span>
                 <span class="temperature">{temp}</span>
                 <span class="time">{timestamp}</span>
             </div>

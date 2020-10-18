@@ -41,6 +41,8 @@ pub fn accumulate_cold_phases(
                 } else {
                     RecordType::Warning
                 },
+                warning_threshold,
+                danger_threshold,
             };
             current_phase = Some(phase);
         }

@@ -34,8 +34,12 @@ fn weather(
     danger_threshold: f32,
     config: State<Config>,
 ) -> Result<content::Json<String>, Box<dyn std::error::Error>> {
-    let now: DateTime<Utc> = Utc::now();
-    let three_days_from_now = now + chrono::Duration::days(3);
+    let now: DateTime<Local> = Local::now();
+    let noon_in_three_days: DateTime<Local> = (now + chrono::Duration::days(3))
+        .with_hour(12)
+        .and_then(|t| t.with_minute(0))
+        .and_then(|t| t.with_second(0))
+        .expect("always noon, can't be invalid");
 
     let api_endpoint = &config.brightsky_api_endpoint;
 
@@ -45,7 +49,7 @@ fn weather(
         lat,
         lon,
         now.to_rfc3339(),
-        three_days_from_now.to_rfc3339()
+        noon_in_three_days.to_rfc3339()
     )
     // TODO escape forbidden characters in a more robust way!
     .replace("+", "%2b");
@@ -53,6 +57,8 @@ fn weather(
     debug!("Pulling weather data from {}", url);
 
     let body = reqwest::blocking::get(&url)?.text()?;
+
+    debug!("Received data:\n{}", body);
 
     let response = parse_response(&body, warning_threshold, danger_threshold)?;
     let json = serde_json::to_string(&response)?;
