@@ -3,6 +3,9 @@
 #[macro_use]
 extern crate rocket;
 
+#[macro_use]
+extern crate log;
+
 use chrono::prelude::*;
 use dotenv::dotenv;
 use frost::backend::*;
@@ -41,13 +44,15 @@ fn weather(
         api_endpoint,
         lat,
         lon,
-        now.format("%Y-%m-%d"),
-        three_days_from_now.format("%Y-%m-%d")
+        now.to_rfc3339(),
+        three_days_from_now.to_rfc3339()
     );
+
+    debug!("Pulling weather data from {}", url);
 
     let body = reqwest::blocking::get(&url)?.text()?;
 
-    let response = parse_response(&body, warning_threshold, danger_threshold, &now)?;
+    let response = parse_response(&body, warning_threshold, danger_threshold)?;
     let json = serde_json::to_string(&response)?;
 
     Ok(content::Json(json))
@@ -61,13 +66,11 @@ fn parse_response(
     brightsky_response: &str,
     warning_threshold: f32,
     danger_threshold: f32,
-    now: &DateTime<Utc>,
 ) -> Result<BackendResult, Box<dyn std::error::Error>> {
     let data = serde_json::from_str(brightsky_response);
     match data {
         Ok(data) => {
-            let cold_phases =
-                accumulate_cold_phases(warning_threshold, danger_threshold, &data, &now);
+            let cold_phases = accumulate_cold_phases(warning_threshold, danger_threshold, &data);
             Ok(Ok(cold_phases))
         }
         Err(_) => {
@@ -79,6 +82,7 @@ fn parse_response(
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv().ok();
+    env_logger::init();
 
     let brightsky_api_endpoint = env::var("FROST_BRIGHTSKY_ENDPOINT")?;
 

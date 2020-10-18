@@ -1,20 +1,16 @@
 use super::common::*;
 use chrono::prelude::*;
 
-pub fn accumulate_cold_phases<Tz: TimeZone>(
+pub fn accumulate_cold_phases(
     warning_threshold: f32,
     danger_threshold: f32,
     data: &brtsky::Response,
-    start: &DateTime<Tz>,
 ) -> Vec<ColdPhase> {
     let mut phases: Vec<ColdPhase> = Vec::new();
 
     let mut current_phase: Option<ColdPhase> = None;
 
-    for data in data
-        .weather_data_sets()
-        .filter(|ds| &ds.weather_data().timestamp >= start)
-    {
+    for data in data.weather_data_sets() {
         let temp = data.weather_data().temperature;
         if temp > warning_threshold {
             // end current phase if there is on
@@ -63,10 +59,9 @@ mod test {
 
     #[test]
     fn test() {
-        let start: DateTime<Utc> = "2020-04-21T02:00:00+00:00".parse().unwrap();
         let data = std::fs::read("test/test.json").unwrap();
         let data: brtsky::Response = serde_json::from_slice(&data).unwrap();
-        let cold_phases = accumulate_cold_phases(10.0, 7.0, &data, &start);
+        let cold_phases = accumulate_cold_phases(10.0, 7.0, &data);
 
         assert_eq!(cold_phases.len(), 1);
 
