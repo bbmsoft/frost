@@ -1,9 +1,35 @@
-use super::RecordType;
 use chrono::prelude::*;
+use std::fmt;
 
-pub fn set_panic_hook() {
-    #[cfg(feature = "console_error_panic_hook")]
-    console_error_panic_hook::set_once();
+#[derive(Debug, Clone, PartialEq)]
+pub enum RecordType {
+    Warning,
+    Danger,
+}
+
+impl fmt::Display for RecordType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            RecordType::Warning => write!(f, "warning"),
+            RecordType::Danger => write!(f, "danger"),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum LocationStatus {
+    WaitingForLocation,
+    LocationFailed(u16, String),
+    LocationRetrieved(f32, f32),
+    LocationDisabled,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum WeatherDataStatus {
+    WaitingForWeatherData,
+    FetchError(String),
+    ParseError(String),
+    WeatherDataRetrieved(brtsky::Response),
 }
 
 #[derive(Debug, PartialEq, Clone)]

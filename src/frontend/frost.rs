@@ -1,5 +1,4 @@
-use super::super::utils;
-use super::super::{LocationStatus, WeatherDataStatus};
+use super::super::common::{LocationStatus, WeatherDataStatus};
 use super::record::*;
 use yew::format::Nothing;
 use yew::prelude::*;
@@ -161,7 +160,7 @@ fn fetch_weather_data(
 fn format_weather_data(response: &brtsky::Response) -> Vec<VNode> {
     let mut out = Vec::new();
 
-    for phase in utils::accumulate_cold_phases(5.0, 0.0, response) {
+    for phase in super::accumulate_cold_phases(5.0, 0.0, response) {
         let record = html! {
             <Record phase={phase} />
         };
