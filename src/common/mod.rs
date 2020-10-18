@@ -1,20 +1,7 @@
 use chrono::prelude::*;
 use std::fmt;
 
-#[derive(Debug, Clone, PartialEq)]
-pub enum RecordType {
-    Warning,
-    Danger,
-}
-
-impl fmt::Display for RecordType {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            RecordType::Warning => write!(f, "warning"),
-            RecordType::Danger => write!(f, "danger"),
-        }
-    }
-}
+pub type BackendResult = Result<Vec<ColdPhase>, BackendError>;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum LocationStatus {
@@ -29,10 +16,10 @@ pub enum WeatherDataStatus {
     WaitingForWeatherData,
     FetchError(String),
     ParseError(String),
-    WeatherDataRetrieved(brtsky::Response),
+    WeatherDataRetrieved(BackendResult),
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct ColdPhase {
     pub location: String,
     pub min_temp: f32,
@@ -41,54 +28,66 @@ pub struct ColdPhase {
     pub record_type: RecordType,
 }
 
-pub fn accumulate_cold_phases(
-    warning_threshold: f32,
-    danger_threshold: f32,
-    data: &brtsky::Response,
-) -> Vec<ColdPhase> {
-    let mut phases: Vec<ColdPhase> = Vec::new();
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub enum RecordType {
+    Warning,
+    Danger,
+}
 
-    let mut current_phase: Option<ColdPhase> = None;
-
-    for data in data.weather_data_sets() {
-        let temp = data.weather_data().temperature;
-        if temp > warning_threshold {
-            // end current phase if there is on
-            if let Some(phase) = current_phase.as_mut() {
-                phases.push(phase.clone());
-                current_phase = None;
-            }
-        } else if let Some(phase) = current_phase.as_mut() {
-            // update current phase if there is one
-            if temp < phase.min_temp {
-                phase.min_temp = temp;
-            }
-            if temp <= danger_threshold {
-                phase.record_type = RecordType::Danger;
-            }
-            phase.end =
-                data.weather_data().timestamp.with_timezone(&Local) + chrono::Duration::hours(1);
-        } else {
-            // start new phase
-            let phase = ColdPhase {
-                location: data.source().station_name.to_owned(),
-                min_temp: temp,
-                start: data.weather_data().timestamp.with_timezone(&Local),
-                end: data.weather_data().timestamp.with_timezone(&Local)
-                    + chrono::Duration::hours(1),
-                record_type: if temp <= danger_threshold {
-                    RecordType::Danger
-                } else {
-                    RecordType::Warning
-                },
-            };
-            current_phase = Some(phase);
+impl fmt::Display for RecordType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            RecordType::Warning => write!(f, "warning"),
+            RecordType::Danger => write!(f, "danger"),
         }
     }
-
-    if let Some(phase) = current_phase.as_mut() {
-        phases.push(phase.clone());
-    }
-
-    phases
 }
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub enum BackendError {
+    BrightskyError(BrightskyApiError),
+    NetworkError(String),
+}
+
+impl fmt::Display for BackendError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            BackendError::BrightskyError(e) => e.fmt(f),
+            BackendError::NetworkError(e) => e.fmt(f),
+        }
+    }
+}
+
+impl std::error::Error for BackendError {}
+
+impl From<BrightskyApiError> for BackendError {
+    fn from(e: BrightskyApiError) -> Self {
+        BackendError::BrightskyError(e)
+    }
+}
+
+impl From<Box<dyn std::error::Error>> for BackendError {
+    fn from(e: Box<dyn std::error::Error>) -> Self {
+        BackendError::NetworkError(e.to_string())
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct BrightskyApiError {
+    pub title: String,
+    pub description: String,
+}
+
+impl fmt::Display for BrightskyApiError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(
+            f,
+            "{}",
+            serde_json::to_string_pretty(self).expect(
+                "BrightskyApiError must not contain fields that could actually cause this to fail"
+            )
+        )
+    }
+}
+
+impl std::error::Error for BrightskyApiError {}

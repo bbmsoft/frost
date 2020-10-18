@@ -1,4 +1,5 @@
-use super::super::common::{LocationStatus, WeatherDataStatus};
+use super::super::common::*;
+use super::super::common::{BackendError, LocationStatus, WeatherDataStatus};
 use super::record::*;
 use yew::format::Nothing;
 use yew::prelude::*;
@@ -62,14 +63,22 @@ impl Component for Frost {
 
     fn view(&self) -> Html {
         match &self.props.weather {
-            Some(WeatherDataStatus::WeatherDataRetrieved(data)) => {
-                let records = format_weather_data(&data);
-                html! {
-                    <div class="records">
-                        { records }
-                    </div>
+            Some(WeatherDataStatus::WeatherDataRetrieved(data)) => match data {
+                Ok(data) => {
+                    let records: Vec<VNode> = data.iter().map(to_record).collect();
+                    html! {
+                        <div class="records">
+                            { records }
+                        </div>
+                    }
                 }
-            }
+                Err(e) => html! {
+                    <div class="error">
+                        <span class="error-header">{"there was an error getting the current weather data:"}</span>
+                        <span class="error-body">{e}</span>
+                    </div>
+                },
+            },
             Some(WeatherDataStatus::WaitingForWeatherData) => html! {
                 <div>
                     {"Fetching weather data..."}
@@ -131,41 +140,44 @@ fn fetch_weather_data(
     lat: f32,
     lon: f32,
     link: ComponentLink<Frost>,
-) -> Result<FetchTask, Box<dyn std::error::Error>> {
+) -> Result<FetchTask, BackendError> {
     let callback = move |response: Response<Result<String, anyhow::Error>>| {
-        let (meta, data) = response.into_parts();
-        if meta.status.is_success() {
-            match data {
-                Ok(data) => match data.parse() {
-                    Ok(response) => {
-                        Msg::WeatherUpdate(WeatherDataStatus::WeatherDataRetrieved(response))
-                    }
-                    Err(e) => Msg::WeatherUpdate(WeatherDataStatus::ParseError(e.to_string())),
-                },
-                Err(e) => Msg::WeatherUpdate(WeatherDataStatus::ParseError(e.to_string())),
-            }
-        } else {
-            Msg::WeatherUpdate(WeatherDataStatus::FetchError(meta.status.to_string()))
-        }
+        let data = response.body();
+        let status = match data {
+            Ok(data) => match serde_json::from_str(&data) {
+                Ok(response) => WeatherDataStatus::WeatherDataRetrieved(response),
+                Err(e) => WeatherDataStatus::ParseError(e.to_string()),
+            },
+            Err(e) => WeatherDataStatus::FetchError(e.to_string()),
+        };
+        Msg::WeatherUpdate(status)
     };
 
-    let uri = format!("/weather?lat={}&lon={}", lat, lon);
+    let uri = format!(
+        "/weather?lat={}&lon={}&warning_threshold=5.0&danger_threshold=0.0",
+        lat, lon
+    );
     let callback = link.callback(callback);
 
     let request = Request::get(uri).body(Nothing)?;
-
-    Ok(FetchService::fetch(request, callback)?)
+    let fetch_task = convert_err(FetchService::fetch(request, callback));
+    Ok(fetch_task?)
 }
 
-fn format_weather_data(response: &brtsky::Response) -> Vec<VNode> {
-    let mut out = Vec::new();
-
-    for phase in super::accumulate_cold_phases(5.0, 0.0, response) {
-        let record = html! {
-            <Record phase={phase} />
-        };
-        out.push(record);
+fn to_record(phase: &ColdPhase) -> VNode {
+    html! {
+        <Record phase={phase} />
     }
+}
 
-    out
+fn convert_err(
+    result: Result<FetchTask, anyhow::Error>,
+) -> Result<FetchTask, Box<dyn std::error::Error>> {
+    Ok(result?)
+}
+
+impl From<http::Error> for BackendError {
+    fn from(e: http::Error) -> Self {
+        BackendError::NetworkError(e.to_string())
+    }
 }

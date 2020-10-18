@@ -1,5 +1,5 @@
+use self::frost::Frost;
 use super::common::*;
-use frost::Frost;
 use wasm_bindgen::prelude::*;
 use yew::prelude::*;
 
