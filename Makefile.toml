@@ -16,7 +16,3 @@ watch = true
 dependencies = ["wasm-pack"]
 command = "cargo"
 args = ["build", "--release"]
-
-[tasks.launch]
-dependencies = ["build"]
-command = "target/release/frost"
