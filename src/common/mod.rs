@@ -9,6 +9,7 @@ pub enum LocationStatus {
     LocationFailed(u16, String),
     LocationRetrieved(f32, f32),
     LocationDisabled,
+    LocationNotSupported,
 }
 
 #[derive(Debug, Clone, PartialEq)]

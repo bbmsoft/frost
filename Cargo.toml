@@ -24,7 +24,7 @@ default = ["console_error_panic_hook"]
 # brtsky = "0.1"
 brtsky = { path = "../brtsky" }
 
-wasm-bindgen = "0.2"
+wasm-bindgen = { version = "0.2", features = ["nightly"] }
 wasm-bindgen-futures = "0.4"
 web-sys = { version = "0.3", features = ["Geolocation", "Navigator", "Window", "console"] }
 js-sys = "0.3"

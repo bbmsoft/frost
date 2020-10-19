@@ -11,23 +11,7 @@
 
         async function start_app() {
             await init()
-            const navigator = window.navigator
-            if (navigator.geolocation) {
-                const geolocation = navigator.geolocation
-                frost.start(() => get_location(geolocation))
-            } else {
-                frost.start()
-            }
-        }
-
-        async function get_location(geolocation) {
-            const success = position => frost.set_location(position.coords.latitude, position.coords.longitude, () => get_location(geolocation))
-            const error = e => {
-                alert(`Failed to get location: ${e.message}.`)
-                frost.get_location_failed(e.code, e.message)
-            }
-            const options = { timeout: 3000, enableHighAccuracy: false, maximumAge: 3600 }
-            geolocation.getCurrentPosition(success, error, options)
+            frost.start(window.navigator.geolocation != undefined)
         }
 
         start_app()

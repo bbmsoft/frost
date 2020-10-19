@@ -57,7 +57,6 @@ impl Component for Frost {
         if self.props.location != old_location {
             check_for_weather_update(self, self.props.location.clone(), self.link.clone());
         }
-
         true
     }
 
@@ -110,6 +109,11 @@ impl Component for Frost {
                 LocationStatus::LocationDisabled => html! {
                     <div>
                         {"TODO: enter location manually"}
+                    </div>
+                },
+                LocationStatus::LocationNotSupported => html! {
+                    <div>
+                        {"Geolocation not supported"}
                     </div>
                 },
             },
