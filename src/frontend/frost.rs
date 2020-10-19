@@ -143,10 +143,13 @@ fn fetch_weather_data(
     let callback = move |response: Response<Result<String, anyhow::Error>>| {
         let data = response.body();
         let status = match data {
-            Ok(data) => match serde_json::from_str(&data) {
-                Ok(response) => WeatherDataStatus::WeatherDataRetrieved(response),
-                Err(e) => WeatherDataStatus::ParseError(e.to_string()),
-            },
+            Ok(data) => {
+                debug!("Response from backend: {}", data);
+                match serde_json::from_str(&data) {
+                    Ok(response) => WeatherDataStatus::WeatherDataRetrieved(response),
+                    Err(e) => WeatherDataStatus::ParseError(e.to_string()),
+                }
+            }
             Err(e) => WeatherDataStatus::FetchError(e.to_string()),
         };
         Msg::WeatherUpdate(status)
@@ -154,6 +157,7 @@ fn fetch_weather_data(
 
     let callback = link.callback(callback);
 
+    debug!("Requesting weather data from backend...");
     let request = Request::get("/weather").body(Nothing)?;
     let fetch_task = convert_err(FetchService::fetch(request, callback));
     Ok(fetch_task?)

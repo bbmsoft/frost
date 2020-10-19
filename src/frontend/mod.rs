@@ -3,15 +3,13 @@ use super::common::*;
 use wasm_bindgen::prelude::*;
 use yew::prelude::*;
 
-pub mod frost;
-pub mod js;
-pub mod record;
-
-// When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
-// allocator.
 #[cfg(feature = "wee_alloc")]
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
+
+pub mod frost;
+pub mod js;
+pub mod record;
 
 pub struct Model {
     link: ComponentLink<Model>,
@@ -96,10 +94,15 @@ impl Component for Model {
     }
 }
 
-#[wasm_bindgen]
-pub fn start(geolocation_supported: bool) {
-    set_panic_hook();
+#[wasm_bindgen(start)]
+pub fn main_js() -> Result<(), JsValue> {
+    #[cfg(debug_assertions)]
+    console_error_panic_hook::set_once();
     wasm_logger::init(wasm_logger::Config::default());
+
+    info!("WASM successfully loaded!");
+
+    let geolocation_supported = js::is_geolocation_available();
 
     let location = if let Some(value) = js::get_cookie(LOCATION_COOKIE) {
         if let Ok((lat, lon)) = serde_json::from_str(&value) {
@@ -121,10 +124,8 @@ pub fn start(geolocation_supported: bool) {
         location,
         geolocation_supported,
     };
-    App::<Model>::new().mount_to_body_with_props(props);
-}
 
-pub fn set_panic_hook() {
-    #[cfg(feature = "console_error_panic_hook")]
-    console_error_panic_hook::set_once();
+    App::<Model>::new().mount_to_body_with_props(props);
+
+    Ok(())
 }

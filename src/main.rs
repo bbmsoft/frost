@@ -28,13 +28,13 @@ impl fmt::Display for CookieError {
 impl std::error::Error for CookieError {}
 
 #[get("/")]
-fn index() -> Option<NamedFile> {
-    files(PathBuf::from("index.html"))
+fn index(config: State<Config>) -> Option<NamedFile> {
+    files(PathBuf::from("index.html"), config)
 }
 
 #[get("/<file..>")]
-fn files(file: PathBuf) -> Option<NamedFile> {
-    NamedFile::open(Path::new("./pkg/").join(file)).ok()
+fn files(file: PathBuf, config: State<Config>) -> Option<NamedFile> {
+    NamedFile::open(Path::new(&config.root_dir).join(file)).ok()
 }
 
 // TODO provide endpoints with query params and for use with cookies
@@ -83,6 +83,7 @@ fn weather(
 
 struct Config {
     brightsky_api_endpoint: String,
+    root_dir: String,
 }
 
 fn parse_response(
@@ -119,9 +120,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     env_logger::init();
 
     let brightsky_api_endpoint = env::var("FROST_BRIGHTSKY_ENDPOINT")?;
+    let root_dir = env::var("FROST_APP_ROOT")?;
 
     let config = Config {
         brightsky_api_endpoint,
+        root_dir,
     };
 
     rocket::ignite()

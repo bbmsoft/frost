@@ -1,6 +1,6 @@
 use wasm_bindgen::prelude::*;
 
-#[wasm_bindgen(module = "/pkg/index.js")]
+#[wasm_bindgen(module = "/js/app.js")]
 extern "C" {
     #[wasm_bindgen(catch)]
     fn set_cookie_js(key: &str, value: &str, days_valid: usize) -> Result<(), JsValue>;
@@ -11,6 +11,8 @@ extern "C" {
         on_success: &Closure<dyn Fn(f32, f32)>,
         on_error: &Closure<dyn Fn(u16, String)>,
     ) -> Result<(), JsValue>;
+    #[wasm_bindgen(catch)]
+    fn is_geolocation_available_js() -> Result<bool, JsValue>;
 }
 
 // apparently this is not actually necessary
@@ -50,4 +52,9 @@ pub fn get_location(
             error!("Error getting location: {:?}", e);
         }
     }
+}
+
+#[allow(unused_unsafe)]
+pub fn is_geolocation_available() -> bool {
+    unsafe { is_geolocation_available_js().unwrap_or(false) }
 }

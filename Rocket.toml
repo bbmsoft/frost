@@ -1,6 +1,6 @@
 [development]
 address = "0.0.0.0"
-root = "./pkg"
+root = "./dist"
 
 [production]
-root = "./pkg"
+root = "./dist"

@@ -21,6 +21,11 @@ export const get_cookie_js = key => {
     return null;
 }
 
+export const is_geolocation_available_js = () => {
+    const navigator = window.navigator
+    return navigator.geolocation != null
+}
+
 export const get_location_js = (onSuccess, onError) => {
 
     const navigator = window.navigator

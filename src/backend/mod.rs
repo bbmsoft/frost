@@ -69,7 +69,7 @@ mod test {
 
         let json = serde_json::to_string(&cold_phases).unwrap();
 
-        let expected_json = r#"[{"location":"Münster/Osnabrück","min_temp":6.7,"start":"2020-04-21T04:00:00+02:00","end":"2020-04-21T09:00:00+02:00","record_type":"Danger"}]"#;
+        let expected_json = r#"[{"location":"Münster/Osnabrück","min_temp":6.7,"start":"2020-04-21T04:00:00+02:00","end":"2020-04-21T09:00:00+02:00","record_type":"Danger","warning_threshold":10.0,"danger_threshold":7.0}]"#;
 
         assert_eq!(&json, expected_json);
 
