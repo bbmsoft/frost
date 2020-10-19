@@ -111,11 +111,6 @@ impl Component for Frost {
                         {"TODO: enter location manually"}
                     </div>
                 },
-                LocationStatus::LocationNotSupported => html! {
-                    <div>
-                        {"Geolocation not supported"}
-                    </div>
-                },
             },
         }
     }
@@ -157,13 +152,9 @@ fn fetch_weather_data(
         Msg::WeatherUpdate(status)
     };
 
-    let uri = format!(
-        "/weather?lat={}&lon={}&warning_threshold=5.0&danger_threshold=0.0",
-        lat, lon
-    );
     let callback = link.callback(callback);
 
-    let request = Request::get(uri).body(Nothing)?;
+    let request = Request::get("/weather").body(Nothing)?;
     let fetch_task = convert_err(FetchService::fetch(request, callback));
     Ok(fetch_task?)
 }

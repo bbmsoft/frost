@@ -29,6 +29,7 @@ pub enum Msg {
 #[derive(Debug, Clone, Properties, PartialEq)]
 pub struct Props {
     pub location: LocationStatus,
+    pub geolocation_supported: bool,
 }
 
 impl Component for Model {
@@ -65,6 +66,11 @@ impl Component for Model {
             }
             Msg::LocationUpdate(status) => {
                 self.props.location = status;
+                if let &LocationStatus::LocationRetrieved(lat, lon) = &self.props.location {
+                    let value = serde_json::to_string(&(lat, lon)).expect("can't fail");
+                    debug!("Setting location cookie: {}", value);
+                    js::set_cookie("location", &value, 30);
+                }
                 true
             }
         }
@@ -76,7 +82,7 @@ impl Component for Model {
 
     fn view(&self) -> Html {
         let click_callback = self.link.callback(move |_| Msg::RequestDeviceLocation);
-        let geolocation_not_supported = self.props.location == LocationStatus::LocationNotSupported;
+        let geolocation_not_supported = !self.props.geolocation_supported;
         let location = self.props.location.clone();
         html! {
             <div class="app">
@@ -95,14 +101,26 @@ pub fn start(geolocation_supported: bool) {
     set_panic_hook();
     wasm_logger::init(wasm_logger::Config::default());
 
-    let location = if !geolocation_supported {
-        LocationStatus::LocationNotSupported
+    let location = if let Some(value) = js::get_cookie(LOCATION_COOKIE) {
+        if let Ok((lat, lon)) = serde_json::from_str(&value) {
+            LocationStatus::LocationRetrieved(lat, lon)
+        } else {
+            warn!("Location cookie invalid.");
+            LocationStatus::WaitingForLocation
+        }
     } else {
-        // TODO try to get location from cookies
+        debug!("Location cookie not set.");
         LocationStatus::WaitingForLocation
     };
 
-    let props = Props { location };
+    let thresholds = (5.0, 0.0);
+    let value = serde_json::to_string(&thresholds).expect("can't fail");
+    js::set_cookie(THRESHOLD_COOKIE, &value, 30);
+
+    let props = Props {
+        location,
+        geolocation_supported,
+    };
     App::<Model>::new().mount_to_body_with_props(props);
 }
 

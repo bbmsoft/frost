@@ -10,11 +10,22 @@ use chrono::prelude::*;
 use dotenv::dotenv;
 use frost::backend::*;
 use frost::common::*;
+use rocket::http::Cookies;
 use rocket::response::content;
 use rocket::response::NamedFile;
 use rocket::State;
 use std::env;
+use std::fmt;
 use std::path::{Path, PathBuf};
+
+#[derive(Debug)]
+struct CookieError(&'static str);
+impl fmt::Display for CookieError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+impl std::error::Error for CookieError {}
 
 #[get("/")]
 fn index() -> Option<NamedFile> {
@@ -26,14 +37,18 @@ fn files(file: PathBuf) -> Option<NamedFile> {
     NamedFile::open(Path::new("./pkg/").join(file)).ok()
 }
 
-#[get("/weather?<lat>&<lon>&<warning_threshold>&<danger_threshold>")]
+// TODO provide endpoints with query params and for use with cookies
+// TODO use weather station ID cookie for cookie based api
+// #[get("/weather?<lat>&<lon>&<warning_threshold>&<danger_threshold>")]
+// fn weather(lat: f32,lon: f32,warning_threshold: f32,danger_threshold: f32,config: State<Config>,
+#[get("/weather")]
 fn weather(
-    lat: f32,
-    lon: f32,
-    warning_threshold: f32,
-    danger_threshold: f32,
+    cookies: Cookies,
     config: State<Config>,
 ) -> Result<content::Json<String>, Box<dyn std::error::Error>> {
+    let (lat, lon) = get_cookie_value(LOCATION_COOKIE, &cookies)?;
+    let (warning_threshold, danger_threshold) = get_cookie_value(THRESHOLD_COOKIE, &cookies)?;
+
     let now: DateTime<Local> = Local::now();
     let noon_in_three_days: DateTime<Local> = (now + chrono::Duration::days(3))
         .with_hour(12)
@@ -85,6 +100,17 @@ fn parse_response(
             let api_error: BrightskyApiError = serde_json::from_str(brightsky_response)?;
             Ok(Err(api_error.into()))
         }
+    }
+}
+
+fn get_cookie_value(
+    name: &str,
+    cookies: &Cookies,
+) -> Result<(f32, f32), Box<dyn std::error::Error>> {
+    if let Some(value) = cookies.get(name) {
+        Ok(serde_json::from_str(value.value())?)
+    } else {
+        Err(Box::new(CookieError("Location cookie not set!")))
     }
 }
 

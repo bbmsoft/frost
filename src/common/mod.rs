@@ -1,7 +1,12 @@
 use chrono::prelude::*;
 use std::fmt;
 
+pub const LOCATION_COOKIE: &'static str = "location";
+pub const THRESHOLD_COOKIE: &'static str = "thresholds";
+
 pub type BackendResult = Result<Vec<ColdPhase>, BackendError>;
+pub type LocationCookie = (f32, f32);
+pub type ThresholdCookie = (f32, f32);
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum LocationStatus {
@@ -9,7 +14,6 @@ pub enum LocationStatus {
     LocationFailed(u16, String),
     LocationRetrieved(f32, f32),
     LocationDisabled,
-    LocationNotSupported,
 }
 
 #[derive(Debug, Clone, PartialEq)]

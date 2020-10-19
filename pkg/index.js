@@ -5,7 +5,7 @@ export const set_cookie_js = (key, value, daysValid) => {
     document.cookie = key + "=" + value + ";" + expires;
 }
 
-export const get_Cookie_js = key => {
+export const get_cookie_js = key => {
     var name = key + "=";
     var decodedCookie = decodeURIComponent(document.cookie);
     var ca = decodedCookie.split(';');
