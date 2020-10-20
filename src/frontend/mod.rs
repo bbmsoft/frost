@@ -33,6 +33,7 @@ pub enum Msg {
 pub struct Props {
     pub location: LocationStatus,
     pub weather: WeatherDataStatus,
+    pub status: Option<Status>,
     pub geolocation_supported: bool,
 }
 
@@ -102,10 +103,12 @@ impl Component for FrostApp {
         let get_location = self.link.callback(move |_| Msg::RequestDeviceLocation);
         let geolocation_not_supported = !self.props.geolocation_supported;
         let refresh = self.link.callback(|_| Msg::Refresh);
+        let weather = self.props.weather.clone();
+        let status = self.props.status.clone();
         html! {
             <div class="app">
-                <Frost weather={None} />
-                <StatusBar status={None} />
+                <Frost weather={weather} />
+                <StatusBar status={status} />
                 <div class="controls">
                     <button disabled={geolocation_not_supported} onclick={get_location}>{"Use current location"}</button>
                     <button disabled=true>{"Select location"}</button>
@@ -201,10 +204,12 @@ pub fn main_js() -> Result<(), JsValue> {
     let value = serde_json::to_string(&thresholds).expect("can't fail");
     js::set_cookie(THRESHOLD_COOKIE, &value, 30);
     let weather = WeatherDataStatus::WaitingForWeatherData;
+    let status = None;
 
     let props = Props {
         location,
         weather,
+        status,
         geolocation_supported,
     };
 

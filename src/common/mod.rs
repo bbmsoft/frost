@@ -24,6 +24,14 @@ pub enum WeatherDataStatus {
     WeatherDataRetrieved(BackendResult),
 }
 
+#[derive(Debug, PartialEq, Clone)]
+pub enum Status {
+    Progress(String),
+    Info(String),
+    Warning { title: String, body: String },
+    Error { title: String, body: String },
+}
+
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct ColdPhase {
     pub location: String,

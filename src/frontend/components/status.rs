@@ -1,16 +1,9 @@
+use crate::common::*;
 use yew::prelude::*;
 
 pub struct StatusBar {
     // link: ComponentLink<Self>,
     props: Props,
-}
-
-#[derive(Debug, PartialEq, Clone)]
-pub enum Status {
-    Progress(String),
-    Info(String),
-    Warning { title: String, body: String },
-    Error { title: String, body: String },
 }
 
 #[derive(Debug, Clone, PartialEq, Properties)]
