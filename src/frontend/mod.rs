@@ -2,7 +2,9 @@ use self::components::frost::Frost;
 use self::components::status::StatusBar;
 use super::common::*;
 use wasm_bindgen::prelude::*;
+use yew::format::Nothing;
 use yew::prelude::*;
+use yew::services::fetch::{FetchService, FetchTask, Request, Response};
 
 #[cfg(feature = "wee_alloc")]
 #[global_allocator]
@@ -11,27 +13,30 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 pub mod components;
 pub mod js;
 
-pub struct Model {
-    link: ComponentLink<Model>,
+pub struct FrostApp {
+    link: ComponentLink<FrostApp>,
     props: Props,
     on_location_success: Closure<dyn Fn(f32, f32)>,
     on_location_error: Closure<dyn Fn(u16, String)>,
+    fetch_task: Option<FetchTask>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Msg {
     RequestDeviceLocation,
     LocationUpdate(LocationStatus),
+    WeatherUpdate(WeatherDataStatus),
     Refresh,
 }
 
 #[derive(Debug, Clone, Properties, PartialEq)]
 pub struct Props {
     pub location: LocationStatus,
+    pub weather: WeatherDataStatus,
     pub geolocation_supported: bool,
 }
 
-impl Component for Model {
+impl Component for FrostApp {
     type Message = Msg;
     type Properties = Props;
 
@@ -49,12 +54,17 @@ impl Component for Model {
             )))
         });
 
-        Model {
-            link,
-            props,
+        let mut app = FrostApp {
+            link: link.clone(),
+            props: props.clone(),
             on_location_success,
             on_location_error,
-        }
+            fetch_task: None,
+        };
+
+        check_for_weather_update(&mut app, props.location, link);
+
+        app
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
@@ -72,6 +82,10 @@ impl Component for Model {
                 }
                 true
             }
+            Msg::WeatherUpdate(data) => {
+                self.props.weather = data;
+                true
+            }
             Msg::Refresh => {
                 // TODO
                 debug!("Refreshing weather data...");
@@ -87,12 +101,11 @@ impl Component for Model {
     fn view(&self) -> Html {
         let get_location = self.link.callback(move |_| Msg::RequestDeviceLocation);
         let geolocation_not_supported = !self.props.geolocation_supported;
-        let location = self.props.location.clone();
         let refresh = self.link.callback(|_| Msg::Refresh);
         html! {
             <div class="app">
-                <Frost location={location} weather={None} />
-                <StatusBar />
+                <Frost weather={None} />
+                <StatusBar status={None} />
                 <div class="controls">
                     <button disabled={geolocation_not_supported} onclick={get_location}>{"Use current location"}</button>
                     <button disabled=true>{"Select location"}</button>
@@ -100,6 +113,65 @@ impl Component for Model {
                 </div>
             </div>
         }
+    }
+}
+
+fn check_for_weather_update(
+    app: &mut FrostApp,
+    location: LocationStatus,
+    link: ComponentLink<FrostApp>,
+) {
+    if let LocationStatus::LocationRetrieved(lat, lon) = location {
+        match fetch_weather_data(lat, lon, link.clone()) {
+            Ok(fetch_task) => {
+                // prevent fetch task from being dropped / cancelled
+                app.fetch_task = Some(fetch_task);
+                link.send_message(Msg::WeatherUpdate(WeatherDataStatus::WaitingForWeatherData))
+            }
+            Err(e) => link.send_message(Msg::WeatherUpdate(WeatherDataStatus::FetchError(
+                e.to_string(),
+            ))),
+        }
+    }
+}
+
+fn fetch_weather_data(
+    lat: f32,
+    lon: f32,
+    link: ComponentLink<FrostApp>,
+) -> Result<FetchTask, BackendError> {
+    let callback = move |response: Response<Result<String, anyhow::Error>>| {
+        let data = response.body();
+        let status = match data {
+            Ok(data) => {
+                debug!("Response from backend: {}", data);
+                match serde_json::from_str(&data) {
+                    Ok(response) => WeatherDataStatus::WeatherDataRetrieved(response),
+                    Err(e) => WeatherDataStatus::ParseError(e.to_string()),
+                }
+            }
+            Err(e) => WeatherDataStatus::FetchError(e.to_string()),
+        };
+        Msg::WeatherUpdate(status)
+    };
+
+    let callback = link.callback(callback);
+
+    debug!("Requesting weather data from backend...");
+    let request = Request::get("/weather").body(Nothing)?;
+    let fetch_task = convert_err(FetchService::fetch(request, callback));
+    Ok(fetch_task?)
+}
+
+fn convert_err(
+    result: Result<FetchTask, anyhow::Error>,
+) -> Result<FetchTask, Box<dyn std::error::Error>> {
+    Ok(result?)
+}
+
+impl From<http::Error> for BackendError {
+    fn from(e: http::Error) -> Self {
+        BackendError::NetworkError(e.to_string())
     }
 }
 
@@ -128,13 +200,15 @@ pub fn main_js() -> Result<(), JsValue> {
     let thresholds = (5.0, 0.0);
     let value = serde_json::to_string(&thresholds).expect("can't fail");
     js::set_cookie(THRESHOLD_COOKIE, &value, 30);
+    let weather = WeatherDataStatus::WaitingForWeatherData;
 
     let props = Props {
         location,
+        weather,
         geolocation_supported,
     };
 
-    App::<Model>::new().mount_to_body_with_props(props);
+    App::<FrostApp>::new().mount_to_body_with_props(props);
 
     Ok(())
 }

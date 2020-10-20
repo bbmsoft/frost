@@ -1,31 +1,17 @@
 use super::record::*;
+use crate::common::WeatherDataStatus;
 use crate::common::*;
-use crate::common::{BackendError, LocationStatus, WeatherDataStatus};
-use yew::format::Nothing;
 use yew::prelude::*;
-use yew::services::fetch::{FetchService, FetchTask, Request, Response};
 use yew::virtual_dom::VNode;
 
 pub struct Frost {
     link: ComponentLink<Self>,
     props: Props,
-    fetch_task: Option<FetchTask>,
 }
 
 #[derive(Debug, Clone, Properties, PartialEq)]
 pub struct Props {
-    pub location: LocationStatus,
     pub weather: Option<WeatherDataStatus>,
-}
-
-impl Frost {
-    fn new(link: ComponentLink<Self>, props: Props) -> Self {
-        Frost {
-            link,
-            props,
-            fetch_task: None,
-        }
-    }
 }
 
 pub enum Msg {
@@ -38,9 +24,7 @@ impl Component for Frost {
     type Properties = Props;
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        let mut frost = Frost::new(link.clone(), props.clone());
-        check_for_weather_update(&mut frost, props.location, link);
-        frost
+        Frost { link, props }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
@@ -51,13 +35,7 @@ impl Component for Frost {
     }
 
     fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        let old_location = self.props.location.clone();
-        self.props = props;
-
-        if self.props.location != old_location {
-            check_for_weather_update(self, self.props.location.clone(), self.link.clone());
-        }
-        true
+        false
     }
 
     fn view(&self) -> Html {
@@ -101,90 +79,13 @@ impl Component for Frost {
                     {"Error parsing weather data: "} {e}
                 </div>
             },
-            None => match &self.props.location {
-                LocationStatus::WaitingForLocation | LocationStatus::LocationRetrieved(_, _) => {
-                    html! {
-                        <div class="records">
-                            {"Waiting for access to device location..."}
-                        </div>
-                    }
-                }
-                LocationStatus::LocationFailed(_code, msg) => html! {
-                    <div class="records">
-                        {"Device location could not be determined: "} {msg}
-                    </div>
-                },
-                LocationStatus::LocationDisabled => html! {
-                    <div class="records">
-                        {"TODO: enter location manually"}
-                    </div>
-                },
-            },
+            None => html! {},
         }
     }
-}
-
-fn check_for_weather_update(
-    frost: &mut Frost,
-    location: LocationStatus,
-    link: ComponentLink<Frost>,
-) {
-    if let LocationStatus::LocationRetrieved(lat, lon) = location {
-        match fetch_weather_data(lat, lon, link.clone()) {
-            Ok(fetch_task) => {
-                // prevent fetch task from being dropped / cancelled
-                frost.fetch_task = Some(fetch_task);
-                link.send_message(Msg::WeatherUpdate(WeatherDataStatus::WaitingForWeatherData))
-            }
-            Err(e) => link.send_message(Msg::WeatherUpdate(WeatherDataStatus::FetchError(
-                e.to_string(),
-            ))),
-        }
-    }
-}
-
-fn fetch_weather_data(
-    lat: f32,
-    lon: f32,
-    link: ComponentLink<Frost>,
-) -> Result<FetchTask, BackendError> {
-    let callback = move |response: Response<Result<String, anyhow::Error>>| {
-        let data = response.body();
-        let status = match data {
-            Ok(data) => {
-                debug!("Response from backend: {}", data);
-                match serde_json::from_str(&data) {
-                    Ok(response) => WeatherDataStatus::WeatherDataRetrieved(response),
-                    Err(e) => WeatherDataStatus::ParseError(e.to_string()),
-                }
-            }
-            Err(e) => WeatherDataStatus::FetchError(e.to_string()),
-        };
-        Msg::WeatherUpdate(status)
-    };
-
-    let callback = link.callback(callback);
-
-    debug!("Requesting weather data from backend...");
-    let request = Request::get("/weather").body(Nothing)?;
-    let fetch_task = convert_err(FetchService::fetch(request, callback));
-    Ok(fetch_task?)
 }
 
 fn to_record(phase: &ColdPhase) -> VNode {
     html! {
         <Record phase={phase} />
-    }
-}
-
-fn convert_err(
-    result: Result<FetchTask, anyhow::Error>,
-) -> Result<FetchTask, Box<dyn std::error::Error>> {
-    Ok(result?)
-}
-
-impl From<http::Error> for BackendError {
-    fn from(e: http::Error) -> Self {
-        BackendError::NetworkError(e.to_string())
     }
 }

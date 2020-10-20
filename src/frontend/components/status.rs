@@ -1,26 +1,46 @@
 use yew::prelude::*;
 
 pub struct StatusBar {
-    link: ComponentLink<Self>,
+    // link: ComponentLink<Self>,
     props: Props,
 }
 
+#[derive(Debug, PartialEq, Clone)]
+pub enum Status {
+    Progress(String),
+    Info(String),
+    Warning { title: String, body: String },
+    Error { title: String, body: String },
+}
+
 #[derive(Debug, Clone, PartialEq, Properties)]
-pub struct Props {}
+pub struct Props {
+    pub status: Option<Status>,
+}
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum Msg {}
+pub enum Msg {
+    StatusUpdate(Option<Status>),
+}
 
 impl Component for StatusBar {
     type Message = Msg;
     type Properties = Props;
 
-    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        StatusBar { link, props }
+    fn create(props: Self::Properties, _link: ComponentLink<Self>) -> Self {
+        StatusBar {
+            // link,
+            props,
+        }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
-        match msg {}
+        match msg {
+            Msg::StatusUpdate(update) => {
+                self.props.status = update;
+                true
+            }
+        }
     }
 
     fn change(&mut self, _props: Self::Properties) -> ShouldRender {
@@ -28,6 +48,20 @@ impl Component for StatusBar {
     }
 
     fn view(&self) -> Html {
-        html! {<div>{"STATUSBAR!"}</div>}
+        match &self.props.status {
+            Some(Status::Info(text)) => html! {<div class="status-bar info">{text}</div>},
+            Some(Status::Progress(name)) => html! {<div class="status-bar progress">{name}</div>},
+            Some(Status::Warning { title, body }) => html! {
+            <div class="status-bar warning">
+                <div class="warning-title">{title}</div>
+                <div class="warning-body">{body}</div>
+            </div>},
+            Some(Status::Error { title, body }) => html! {
+            <div class="status-bar error">
+                <div class="error-title">{title}</div>
+                <div class="error-body">{body}</div>
+            </div>},
+            None => html! {},
+        }
     }
 }
