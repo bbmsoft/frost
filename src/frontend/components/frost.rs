@@ -65,10 +65,18 @@ impl Component for Frost {
             Some(WeatherDataStatus::WeatherDataRetrieved(data)) => match data {
                 Ok(data) => {
                     let records: Vec<VNode> = data.iter().map(to_record).collect();
-                    html! {
-                        <div class="records">
-                            { records }
-                        </div>
+                    if records.is_empty() {
+                        html! {
+                            <div class="records">
+                                {"Looks like it's going to be warm the next few days."}
+                            </div>
+                        }
+                    } else {
+                        html! {
+                            <div class="records">
+                                { records }
+                            </div>
+                        }
                     }
                 }
                 Err(e) => html! {
@@ -79,35 +87,35 @@ impl Component for Frost {
                 },
             },
             Some(WeatherDataStatus::WaitingForWeatherData) => html! {
-                <div>
+                <div class="records">
                     {"Fetching weather data..."}
                 </div>
             },
             Some(WeatherDataStatus::FetchError(e)) => html! {
-                <div>
+                <div class="records">
                     {"Error fetching weather data: "} {e}
                 </div>
             },
             Some(WeatherDataStatus::ParseError(e)) => html! {
-                <div>
+                <div class="records">
                     {"Error parsing weather data: "} {e}
                 </div>
             },
             None => match &self.props.location {
                 LocationStatus::WaitingForLocation | LocationStatus::LocationRetrieved(_, _) => {
                     html! {
-                        <div>
+                        <div class="records">
                             {"Waiting for access to device location..."}
                         </div>
                     }
                 }
                 LocationStatus::LocationFailed(_code, msg) => html! {
-                    <div>
+                    <div class="records">
                         {"Device location could not be determined: "} {msg}
                     </div>
                 },
                 LocationStatus::LocationDisabled => html! {
-                    <div>
+                    <div class="records">
                         {"TODO: enter location manually"}
                     </div>
                 },
