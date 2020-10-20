@@ -1,24 +1,9 @@
-export const set_cookie_js = (key, value, daysValid) => {
-    var d = new Date();
-    d.setTime(d.getTime() + (daysValid * 24 * 60 * 60 * 1000));
-    var expires = "expires=" + d.toUTCString();
-    document.cookie = key + "=" + value + ";" + expires;
+export const set_cookie_js = (cookie) => {
+    document.cookie = cookie;
 }
 
-export const get_cookie_js = key => {
-    var name = key + "=";
-    var decodedCookie = decodeURIComponent(document.cookie);
-    var ca = decodedCookie.split(';');
-    for (var i = 0; i < ca.length; i++) {
-        var c = ca[i];
-        while (c.charAt(0) == ' ') {
-            c = c.substring(1);
-        }
-        if (c.indexOf(name) == 0) {
-            return c.substring(name.length, c.length);
-        }
-    }
-    return null;
+export const get_cookies_js = () => {
+    return decodeURIComponent(document.cookie);
 }
 
 export const is_geolocation_available_js = () => {
