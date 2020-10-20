@@ -10,11 +10,11 @@ use chrono::prelude::*;
 use dotenv::dotenv;
 use frost::backend::*;
 use frost::common::*;
+use rocket::fairing::AdHoc;
 use rocket::http::Cookies;
 use rocket::response::content;
 use rocket::response::NamedFile;
 use rocket::State;
-use std::env;
 use std::fmt;
 use std::path::{Path, PathBuf};
 
@@ -28,13 +28,13 @@ impl fmt::Display for CookieError {
 impl std::error::Error for CookieError {}
 
 #[get("/")]
-fn index(config: State<Config>) -> Option<NamedFile> {
-    files(PathBuf::from("index.html"), config)
+fn index(root: State<RootDir>) -> Option<NamedFile> {
+    files(PathBuf::from("index.html"), root)
 }
 
 #[get("/<file..>")]
-fn files(file: PathBuf, config: State<Config>) -> Option<NamedFile> {
-    NamedFile::open(Path::new(&config.root_dir).join(file)).ok()
+fn files(file: PathBuf, root: State<RootDir>) -> Option<NamedFile> {
+    NamedFile::open(Path::new(&root.0).join(file)).ok()
 }
 
 // TODO provide endpoints with query params and for use with cookies
@@ -44,7 +44,7 @@ fn files(file: PathBuf, config: State<Config>) -> Option<NamedFile> {
 #[get("/weather")]
 fn weather(
     cookies: Cookies,
-    config: State<Config>,
+    brightsky_api_endpoint: State<BrightSkyEndpoint>,
 ) -> Result<content::Json<String>, Box<dyn std::error::Error>> {
     let (lat, lon) = get_cookie_value(LOCATION_COOKIE, &cookies)?;
     let (warning_threshold, danger_threshold) = get_cookie_value(THRESHOLD_COOKIE, &cookies)?;
@@ -56,7 +56,7 @@ fn weather(
         .and_then(|t| t.with_second(0))
         .expect("always noon, can't be invalid");
 
-    let api_endpoint = &config.brightsky_api_endpoint;
+    let api_endpoint = &brightsky_api_endpoint.0;
 
     let url = format!(
         "{}?lat={}&lon={}&date={}&last_date={}",
@@ -79,11 +79,6 @@ fn weather(
     let json = serde_json::to_string(&response)?;
 
     Ok(content::Json(json))
-}
-
-struct Config {
-    brightsky_api_endpoint: String,
-    root_dir: String,
 }
 
 fn parse_response(
@@ -115,21 +110,33 @@ fn get_cookie_value(
     }
 }
 
+struct RootDir(String);
+struct BrightSkyEndpoint(String);
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv().ok();
     env_logger::init();
 
-    let brightsky_api_endpoint = env::var("FROST_BRIGHTSKY_ENDPOINT")?;
-    let root_dir = env::var("FROST_APP_ROOT")?;
-
-    let config = Config {
-        brightsky_api_endpoint,
-        root_dir,
-    };
-
     rocket::ignite()
-        .manage(config)
         .mount("/", routes![index, weather, files])
+        .attach(AdHoc::on_attach("Root Dir", |rocket| {
+            let root_dir = rocket
+                .config()
+                .get_str("frost_app_root")
+                .unwrap_or("./dist")
+                .to_string();
+
+            Ok(rocket.manage(RootDir(root_dir)))
+        }))
+        .attach(AdHoc::on_attach("BrightSky Api Endpoint", |rocket| {
+            let brightsky_endpoint = rocket
+                .config()
+                .get_str("frost_brightsky_endpoint")
+                .unwrap_or("https://api.brightsky.dev/weather")
+                .to_string();
+
+            Ok(rocket.manage(BrightSkyEndpoint(brightsky_endpoint)))
+        }))
         .launch();
 
     Ok(())
