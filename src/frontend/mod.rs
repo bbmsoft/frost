@@ -75,15 +75,58 @@ impl Component for FrostApp {
                 false
             }
             Msg::LocationUpdate(status) => {
-                self.props.location = status;
-                if let &LocationStatus::LocationRetrieved(lat, lon) = &self.props.location {
-                    let value = serde_json::to_string(&(lat, lon)).expect("can't fail");
-                    debug!("Setting location cookie: {}", value);
-                    js::set_cookie("location", &value, 30);
+                match &status {
+                    LocationStatus::WaitingForLocation => {
+                        self.props.status = Some(Status::Progress(
+                            "Waitig for location service...".to_owned(),
+                        ));
+                    }
+                    LocationStatus::LocationFailed(_code, msg) => {
+                        self.props.status = Some(Status::Error {
+                            title: "Error getting location:".to_owned(),
+                            body: msg.to_owned(),
+                        });
+                    }
+                    LocationStatus::LocationRetrieved(lat, lon) => {
+                        if let LocationStatus::WaitingForLocation = self.props.location {
+                            self.props.status = None;
+                        }
+                        let value = serde_json::to_string(&(lat, lon)).expect("can't fail");
+                        debug!("Setting location cookie: {}", value);
+                        js::set_cookie("location", &value, 30);
+                    }
+                    LocationStatus::LocationDisabled => {}
                 }
+
+                self.props.location = status;
+
                 true
             }
             Msg::WeatherUpdate(data) => {
+                match &data {
+                    WeatherDataStatus::WaitingForWeatherData => {
+                        self.props.status =
+                            Some(Status::Progress("Fetching weather data...".to_owned()));
+                    }
+                    WeatherDataStatus::FetchError(msg) => {
+                        self.props.status = Some(Status::Error {
+                            title: "Error fetching weather data:".to_owned(),
+                            body: msg.to_owned(),
+                        });
+                    }
+                    WeatherDataStatus::ParseError(msg) => {
+                        self.props.status = Some(Status::Error {
+                            title: "Received invalid weather data:".to_owned(),
+                            body: msg.to_owned(),
+                        });
+                    }
+                    WeatherDataStatus::WeatherDataRetrieved(_) => {
+                        if let WeatherDataStatus::WaitingForWeatherData = self.props.weather {
+                            self.props.status = None;
+                        }
+                    }
+                }
+
                 self.props.weather = data;
                 true
             }
