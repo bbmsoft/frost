@@ -35,7 +35,8 @@ impl Component for Frost {
     }
 
     fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        false
+        self.props = props;
+        true
     }
 
     fn view(&self) -> Html {
