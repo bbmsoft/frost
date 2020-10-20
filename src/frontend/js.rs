@@ -65,7 +65,7 @@ fn format_cookie(key: &str, value: &str, days_valid: usize) -> String {
     let expiry_date = Utc::now() + chrono::Duration::days(days_valid as i64);
     let expiry_date = expiry_date.to_rfc3339();
     format!(
-        "{}={};expires={};secure;samesite=strict",
+        "{}={};expires={};secure;samesite=Strict",
         key, value, expiry_date
     )
 }
