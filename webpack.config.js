@@ -25,6 +25,7 @@ module.exports = {
       crateDirectory: __dirname,
     }),
     new WorkboxPlugin.GenerateSW({
+      maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
       // these options encourage the ServiceWorkers to get in there fast
       // and not allow any straggling "old" SWs to hang around
       clientsClaim: true,
@@ -32,3 +33,4 @@ module.exports = {
     }),
   ]
 };
+
