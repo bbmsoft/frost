@@ -1,6 +1,6 @@
-use super::super::common::*;
-use super::super::common::{BackendError, LocationStatus, WeatherDataStatus};
 use super::record::*;
+use crate::common::*;
+use crate::common::{BackendError, LocationStatus, WeatherDataStatus};
 use yew::format::Nothing;
 use yew::prelude::*;
 use yew::services::fetch::{FetchService, FetchTask, Request, Response};

@@ -1,4 +1,5 @@
-use self::frost::Frost;
+use self::components::frost::Frost;
+use self::components::status::StatusBar;
 use super::common::*;
 use wasm_bindgen::prelude::*;
 use yew::prelude::*;
@@ -7,9 +8,8 @@ use yew::prelude::*;
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
-pub mod frost;
+pub mod components;
 pub mod js;
-pub mod record;
 
 pub struct Model {
     link: ComponentLink<Model>,
@@ -22,6 +22,7 @@ pub struct Model {
 pub enum Msg {
     RequestDeviceLocation,
     LocationUpdate(LocationStatus),
+    Refresh,
 }
 
 #[derive(Debug, Clone, Properties, PartialEq)]
@@ -71,6 +72,11 @@ impl Component for Model {
                 }
                 true
             }
+            Msg::Refresh => {
+                // TODO
+                debug!("Refreshing weather data...");
+                false
+            }
         }
     }
 
@@ -79,15 +85,18 @@ impl Component for Model {
     }
 
     fn view(&self) -> Html {
-        let click_callback = self.link.callback(move |_| Msg::RequestDeviceLocation);
+        let get_location = self.link.callback(move |_| Msg::RequestDeviceLocation);
         let geolocation_not_supported = !self.props.geolocation_supported;
         let location = self.props.location.clone();
+        let refresh = self.link.callback(|_| Msg::Refresh);
         html! {
             <div class="app">
                 <Frost location={location} weather={None} />
+                <StatusBar />
                 <div class="controls">
-                    <button disabled={geolocation_not_supported} onclick={click_callback}>{"Use current location"}</button>
+                    <button disabled={geolocation_not_supported} onclick={get_location}>{"Use current location"}</button>
                     <button disabled=true>{"Select location"}</button>
+                    <button onclick={refresh}>{"Refresh"}</button>
                 </div>
             </div>
         }
