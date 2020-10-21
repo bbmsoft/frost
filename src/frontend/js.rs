@@ -1,19 +1,53 @@
 use chrono::prelude::*;
 use wasm_bindgen::prelude::*;
 
-#[wasm_bindgen(module = "/js/app.js")]
+#[wasm_bindgen(module = "/js/location.js")]
 extern "C" {
     #[wasm_bindgen(catch)]
-    fn set_cookie_js(cookie: &str) -> Result<(), JsValue>;
-    #[wasm_bindgen(catch)]
-    fn get_cookies_js() -> Result<String, JsValue>;
+    fn is_geolocation_supported_js() -> Result<bool, JsValue>;
     #[wasm_bindgen(catch)]
     fn get_location_js(
         on_success: &Closure<dyn Fn(f32, f32)>,
         on_error: &Closure<dyn Fn(u16, String)>,
     ) -> Result<(), JsValue>;
+}
+
+#[wasm_bindgen(module = "/js/cookies.js")]
+extern "C" {
     #[wasm_bindgen(catch)]
-    fn is_geolocation_available_js() -> Result<bool, JsValue>;
+    fn set_cookie_js(cookie: &str) -> Result<(), JsValue>;
+    #[wasm_bindgen(catch)]
+    fn get_cookies_js() -> Result<String, JsValue>;
+}
+
+#[wasm_bindgen(module = "/js/notifications.js")]
+extern "C" {
+    #[wasm_bindgen(catch)]
+    fn are_notifications_supported_js() -> Result<bool, JsValue>;
+    #[wasm_bindgen(catch)]
+    fn request_notification_permission_js(
+        on_granted: &Closure<dyn Fn()>,
+        on_denied: &Closure<dyn Fn()>,
+        on_error: &Closure<dyn Fn()>,
+    ) -> Result<(), JsValue>;
+
+    #[wasm_bindgen(catch)]
+    fn show_notification_js(
+        title: &str,
+        text: &str,
+        icon: Option<&str>,
+        tag: Option<&str>,
+    ) -> Result<(), JsValue>;
+
+    #[wasm_bindgen(catch)]
+    fn show_notification_with_callbacks_js(
+        title: &str,
+        text: &str,
+        icon: Option<&str>,
+        tag: Option<&str>,
+        on_click: &Closure<dyn Fn()>,
+        on_error: &Closure<dyn Fn()>,
+    ) -> Result<(), JsValue>;
 }
 
 // apparently this is not actually necessary
@@ -57,8 +91,53 @@ pub fn get_location(
 }
 
 #[allow(unused_unsafe)]
-pub fn is_geolocation_available() -> bool {
-    unsafe { is_geolocation_available_js().unwrap_or(false) }
+pub fn is_geolocation_supported() -> bool {
+    unsafe { is_geolocation_supported_js().unwrap_or(false) }
+}
+
+#[allow(unused_unsafe)]
+pub fn are_notifications_supported() -> bool {
+    unsafe { are_notifications_supported_js().unwrap_or(false) }
+}
+
+#[allow(unused_unsafe)]
+pub fn request_notification_permission(
+    on_granted: &Closure<dyn Fn()>,
+    on_denied: &Closure<dyn Fn()>,
+    on_error: &Closure<dyn Fn()>,
+) {
+    unsafe {
+        if let Err(e) = request_notification_permission_js(on_granted, on_denied, on_error) {
+            error!("Error getting location: {:?}", e);
+        }
+    }
+}
+
+#[allow(unused_unsafe)]
+pub fn show_notification(title: &str, text: &str, icon: Option<&str>, tag: Option<&str>) {
+    unsafe {
+        if let Err(e) = show_notification_js(title, text, icon, tag) {
+            error!("Error getting location: {:?}", e);
+        }
+    }
+}
+
+#[allow(unused_unsafe)]
+pub fn show_notification_with_callbacks(
+    title: &str,
+    text: &str,
+    icon: Option<&str>,
+    tag: Option<&str>,
+    on_click: &Closure<dyn Fn()>,
+    on_error: &Closure<dyn Fn()>,
+) {
+    unsafe {
+        if let Err(e) =
+            show_notification_with_callbacks_js(title, text, icon, tag, on_click, on_error)
+        {
+            error!("Error getting location: {:?}", e);
+        }
+    }
 }
 
 fn format_cookie(key: &str, value: &str, days_valid: usize) -> String {

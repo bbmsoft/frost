@@ -1,12 +1,4 @@
-export const set_cookie_js = (cookie) => {
-    document.cookie = cookie;
-}
-
-export const get_cookies_js = () => {
-    return decodeURIComponent(document.cookie);
-}
-
-export const is_geolocation_available_js = () => {
+export const is_geolocation_supported_js = () => {
     const navigator = window.navigator
     return navigator.geolocation != null
 }

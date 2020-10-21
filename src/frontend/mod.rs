@@ -128,6 +128,7 @@ impl Component for FrostApp {
                 }
 
                 self.props.weather = data;
+
                 true
             }
             Msg::Refresh => {
@@ -229,7 +230,7 @@ pub fn main_js() -> Result<(), JsValue> {
 
     info!("WASM successfully loaded!");
 
-    let geolocation_supported = js::is_geolocation_available();
+    let geolocation_supported = js::is_geolocation_supported();
 
     let location = if let Some(value) = js::get_cookie(LOCATION_COOKIE) {
         if let Ok((lat, lon)) = serde_json::from_str(&value) {
