@@ -335,7 +335,16 @@ pub fn main_js() -> Result<(), JsValue> {
 }
 
 fn temp_from_env(key: &str, default: f32) -> f32 {
-    let value = env::var(key);
-    let parsed = value.map_or(Ok(default), |v| v.parse());
-    parsed.unwrap_or(default)
+    env::var(key).map_or_else(
+        |e| {
+            warn!("Could not get value of {}: {}", key, e);
+            default
+        },
+        |v| {
+            v.parse().unwrap_or_else(|e| {
+                warn!("Error parsing {}: {}", v, e);
+                default
+            })
+        },
+    )
 }
