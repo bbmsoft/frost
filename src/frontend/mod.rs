@@ -106,6 +106,11 @@ impl Component for FrostApp {
                         let value = serde_json::to_string(&(lat, lon)).expect("can't fail");
                         debug!("Setting location cookie: {}", value);
                         js::set_cookie("location", &value, 30);
+                        check_for_weather_update(
+                            self,
+                            self.props.location.clone(),
+                            self.link.clone(),
+                        );
                     }
                     LocationStatus::LocationDisabled => {}
                 }
