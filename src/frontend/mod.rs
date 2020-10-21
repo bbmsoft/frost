@@ -1,6 +1,7 @@
 use self::components::frost::Frost;
 use self::components::status::StatusBar;
 use super::common::*;
+use std::env;
 use wasm_bindgen::prelude::*;
 use yew::format::Nothing;
 use yew::prelude::*;
@@ -309,7 +310,10 @@ pub fn main_js() -> Result<(), JsValue> {
         LocationStatus::WaitingForLocation
     };
 
-    let thresholds = (5.0, 0.0);
+    let warning_threshold = temp_from_env("FROST_WARNING_THRESHOLD", 5.0);
+    let danger_threshold = temp_from_env("FROST_DANGER_THRESHOLD", 0.0);
+    let thresholds = (warning_threshold, danger_threshold);
+
     let value = serde_json::to_string(&thresholds).expect("can't fail");
     js::set_cookie(THRESHOLD_COOKIE, &value, 30);
     let weather = WeatherDataStatus::WaitingForWeatherData;
@@ -328,4 +332,10 @@ pub fn main_js() -> Result<(), JsValue> {
     App::<FrostApp>::new().mount_to_body_with_props(props);
 
     Ok(())
+}
+
+fn temp_from_env(key: &str, default: f32) -> f32 {
+    let value = env::var(key);
+    let parsed = value.map_or(Ok(default), |v| v.parse());
+    parsed.unwrap_or(default)
 }
