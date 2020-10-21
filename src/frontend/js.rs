@@ -26,9 +26,7 @@ extern "C" {
     fn are_notifications_supported_js() -> Result<bool, JsValue>;
     #[wasm_bindgen(catch)]
     fn request_notification_permission_js(
-        on_granted: &Closure<dyn Fn()>,
-        on_denied: &Closure<dyn Fn()>,
-        on_error: &Closure<dyn Fn()>,
+        on_result: &Closure<dyn Fn(JsValue)>,
     ) -> Result<(), JsValue>;
 
     #[wasm_bindgen(catch)]
@@ -101,13 +99,9 @@ pub fn are_notifications_supported() -> bool {
 }
 
 #[allow(unused_unsafe)]
-pub fn request_notification_permission(
-    on_granted: &Closure<dyn Fn()>,
-    on_denied: &Closure<dyn Fn()>,
-    on_error: &Closure<dyn Fn()>,
-) {
+pub fn request_notification_permission(on_result: &Closure<dyn Fn(JsValue)>) {
     unsafe {
-        if let Err(e) = request_notification_permission_js(on_granted, on_denied, on_error) {
+        if let Err(e) = request_notification_permission_js(on_result) {
             error!("Error getting location: {:?}", e);
         }
     }

@@ -17,6 +17,14 @@ pub enum LocationStatus {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+pub enum NotificationPermissionStatus {
+    Granted,
+    Denied,
+    Default,
+    Unsupported,
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub enum WeatherDataStatus {
     WaitingForWeatherData,
     FetchError(String),

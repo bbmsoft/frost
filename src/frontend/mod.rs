@@ -18,6 +18,7 @@ pub struct FrostApp {
     props: Props,
     on_location_success: Closure<dyn Fn(f32, f32)>,
     on_location_error: Closure<dyn Fn(u16, String)>,
+    on_notification_permission: Closure<dyn Fn(JsValue)>,
     fetch_task: Option<FetchTask>,
 }
 
@@ -26,6 +27,7 @@ pub enum Msg {
     RequestDeviceLocation,
     LocationUpdate(LocationStatus),
     WeatherUpdate(WeatherDataStatus),
+    NotificationPermissionUpdate(NotificationPermissionStatus),
     Refresh,
 }
 
@@ -34,7 +36,9 @@ pub struct Props {
     pub location: LocationStatus,
     pub weather: WeatherDataStatus,
     pub status: Option<Status>,
+    pub notification_permission: NotificationPermissionStatus,
     pub geolocation_supported: bool,
+    pub notifications_supported: bool,
 }
 
 impl Component for FrostApp {
@@ -44,6 +48,7 @@ impl Component for FrostApp {
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
         let link_success = link.clone();
         let link_error = link.clone();
+        let link_notification = link.clone();
         let on_location_success = Closure::new(move |lat, lon| {
             link_success.send_message(Msg::LocationUpdate(LocationStatus::LocationRetrieved(
                 lat, lon,
@@ -54,15 +59,21 @@ impl Component for FrostApp {
                 code, msg,
             )))
         });
+        let on_notification_permission = Closure::new(move |permission: JsValue| {
+            let permission = permission.into();
+            link_notification.send_message(Msg::NotificationPermissionUpdate(permission));
+        });
 
         let mut app = FrostApp {
             link: link.clone(),
             props: props.clone(),
             on_location_success,
             on_location_error,
+            on_notification_permission,
             fetch_task: None,
         };
 
+        js::request_notification_permission(&app.on_notification_permission);
         check_for_weather_update(&mut app, props.location, link);
 
         app
@@ -120,9 +131,12 @@ impl Component for FrostApp {
                             body: msg.to_owned(),
                         });
                     }
-                    WeatherDataStatus::WeatherDataRetrieved(_) => {
+                    WeatherDataStatus::WeatherDataRetrieved(data) => {
                         if let WeatherDataStatus::WaitingForWeatherData = self.props.weather {
                             self.props.status = None;
+                        }
+                        if let &Ok(data) = &data {
+                            self.try_send_weather_notification(data);
                         }
                     }
                 }
@@ -134,6 +148,10 @@ impl Component for FrostApp {
             Msg::Refresh => {
                 // TODO
                 debug!("Refreshing weather data...");
+                false
+            }
+            Msg::NotificationPermissionUpdate(notification_permission) => {
+                self.props.notification_permission = notification_permission;
                 false
             }
         }
@@ -160,6 +178,37 @@ impl Component for FrostApp {
                 </div>
             </div>
         }
+    }
+}
+
+impl FrostApp {
+    fn try_send_weather_notification(&self, data: &Vec<ColdPhase>) {
+        if data.is_empty() {
+            return;
+        }
+
+        if self.props.notification_permission == NotificationPermissionStatus::Granted {
+            self.send_weather_notification(data);
+        }
+    }
+
+    fn send_weather_notification(&self, data: &Vec<ColdPhase>) {
+        let record_type = if data
+            .iter()
+            .find(|p| p.record_type == RecordType::Danger)
+            .is_some()
+        {
+            RecordType::Danger
+        } else {
+            RecordType::Warning
+        };
+        let temp_min = data
+            .iter()
+            .map(|p| p.min_temp)
+            .fold(9000f32, |a, b| a.min(b));
+        let titel = record_type.to_string().to_uppercase();
+        let text = format!("Temperatures as low as {} °C predicted.", temp_min);
+        js::show_notification(&titel, &text, Some("/icon.png"), Some("frost"));
     }
 }
 
@@ -222,6 +271,21 @@ impl From<http::Error> for BackendError {
     }
 }
 
+impl From<JsValue> for NotificationPermissionStatus {
+    fn from(value: JsValue) -> Self {
+        if let Some(str) = value.as_string().as_deref() {
+            match str {
+                "granted" => NotificationPermissionStatus::Granted,
+                "denied" => NotificationPermissionStatus::Denied,
+                "default" => NotificationPermissionStatus::Default,
+                _ => NotificationPermissionStatus::Unsupported,
+            }
+        } else {
+            NotificationPermissionStatus::Unsupported
+        }
+    }
+}
+
 #[wasm_bindgen(start)]
 pub fn main_js() -> Result<(), JsValue> {
     #[cfg(debug_assertions)]
@@ -231,6 +295,7 @@ pub fn main_js() -> Result<(), JsValue> {
     info!("WASM successfully loaded!");
 
     let geolocation_supported = js::is_geolocation_supported();
+    let notifications_supported = js::are_notifications_supported();
 
     let location = if let Some(value) = js::get_cookie(LOCATION_COOKIE) {
         if let Ok((lat, lon)) = serde_json::from_str(&value) {
@@ -249,12 +314,15 @@ pub fn main_js() -> Result<(), JsValue> {
     js::set_cookie(THRESHOLD_COOKIE, &value, 30);
     let weather = WeatherDataStatus::WaitingForWeatherData;
     let status = None;
+    let notification_permission = NotificationPermissionStatus::Default;
 
     let props = Props {
         location,
         weather,
         status,
+        notification_permission,
         geolocation_supported,
+        notifications_supported,
     };
 
     App::<FrostApp>::new().mount_to_body_with_props(props);
