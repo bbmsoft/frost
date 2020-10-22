@@ -31,7 +31,7 @@ impl Component for Record {
         let phase = &self.props.phase;
 
         let location = &phase.location;
-        let date = format_date(&phase);
+        let date_start = phase.start.format("%Y-%m-%d");
         let class = phase.record_type.to_string();
         let type_text = class.to_uppercase();
         let explanation = match phase.record_type {
@@ -41,27 +41,23 @@ impl Component for Record {
         let temp = format!("Temperature drops as low as {} °C", phase.min_temp);
         let timestamp = format_time(&phase);
 
+        let date2 = if phase.start.date() != phase.end.date() {
+            let date_end = phase.end.format("%Y-%m-%d");
+            html! {<span class="date2">{"- "}{date_end}</span>}
+        } else {
+            html! {}
+        };
+
         html! {
             <div class="record">
                 <span class="location">{location}</span>
-                <span class="date">{date}</span>
+                <span class="date">{date_start}</span>
+                {date2}
                 <span class={class}>{type_text}{": "}{explanation}</span>
                 <span class="temperature">{temp}</span>
                 <span class="time">{timestamp}</span>
             </div>
         }
-    }
-}
-
-fn format_date(phase: &ColdPhase) -> String {
-    if phase.start.date() == phase.end.date() {
-        phase.start.format("%Y-%m-%d").to_string()
-    } else {
-        format!(
-            "{} - {}",
-            phase.start.format("%Y-%m-%d"),
-            phase.end.format("%Y-%m-%d")
-        )
     }
 }
 

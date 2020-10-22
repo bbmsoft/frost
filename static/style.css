@@ -1,164 +1,247 @@
+:root {
+  --blue: #5400ff;
+  --dark-blue: #2e009b;
+  --light-blue: #e7edff;
+  --light-blue-alt: #d4dfff;
+  --white: #ffffff;
+  --black: #333333;
+  --shadow: #0003;
+  --orange: orange;
+  --red: tomato;
+}
+
 @media (max-width: 480px) {
-    body {
-        font: 8px sans-serif;
-    }
+  body {
+    font: 8px sans-serif;
+  }
 }
 
 @media (min-width: 480px) {
-    body {
-        font: 10px sans-serif;
-    }
+  body {
+    font: 10px sans-serif;
+  }
 }
 
 @media (min-width: 961px) {
-    body {
-        font: 12px sans-serif;
-    }
-}
-
-@media (max-width: 1920px) {
-    .record {
-        padding: 16px 32px 16px 32px;
-        border-radius: 8px;
-        box-shadow: 2px 2px 4px #00000033;
-    }
+  body {
+    font: 12px sans-serif;
+  }
 }
 
 @media (min-width: 1921px) {
-    body {
-        font: 24px sans-serif;
-    }
-    .record {
-        padding: 32px 64px 32px 64px;
-        border-radius: 16px;
-        box-shadow: 4px 4px 8px #00000033;
-    }
+  body {
+    font: 24px sans-serif;
+  }
 }
 
-/* html, body {
-    height: 100%;
-} */
+body {
+  color: var(--black);
+  padding: 0px;
+  margin: 0px;
+}
 
 .app {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: stretch;
-    margin-left: auto;
-    margin-right: auto;
-    padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: stretch;
+  margin-left: auto;
+  margin-right: auto;
+  height: 100vh;
 }
 
 @media (min-aspect-ratio: 1/1) {
-    .app {
-        max-width: 1024px;
-    }
+  .app {
+    max-width: 1024px;
+  }
 }
 
 @media (max-width: 480px) {
-    .app {
-        padding: 8px;
-    }
+  .app {
+    padding: 8px;
+  }
+}
+
+.header {
+  color: var(--white);
+  padding: 0.7em 1.4em 0.7em 1.4em;
+  border-bottom-width: 1px;
+  background: var(--blue);
+  background: linear-gradient(90deg, var(--blue) 0%, var(--dark-blue) 100%);
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+}
+
+h1 {
+  flex-grow: 999;
+  display: inline-block;
+}
+
+.app-icon {
+  max-width: 4em;
+  max-height: 4em;
+  flex-grow: 1;
 }
 
 .records {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: stretch;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: stretch;
+  justify-content: flex-start;
+  padding: 1.4em;
+  flex-grow: 999;
 }
 
 .record {
-    display: grid;
-    background-color: aliceblue;
-    margin-bottom: 16px;
+  display: grid;
+  background-color: var(--light-blue);
+  margin-bottom: 16px;
+
+  padding: 1.4em 2.8em 1.4em 2.8em;
+  border-radius: 0.7em;
+  /* box-shadow: 0.2em 0.2em 0.4em var(--shadow); */
 }
 
 .record:hover {
-    background-color: rgb(227, 242, 255);
+  background-color: var(--light-blue-alt);
 }
 
 .location {
-    grid-column-start: 1;
-    grid-column-end: 3;
-    grid-row-start: 1;
-    grid-row-end: 2;
-    font-weight: bold;
-    font-size: 1.2em;
-    text-align: left;
+  grid-column-start: 1;
+  grid-column-end: 3;
+  grid-row-start: 1;
+  grid-row-end: 2;
+  font-weight: bold;
+  font-size: 1.2em;
+  text-align: left;
 }
 
-.date {
-    grid-column-start: 3;
-    grid-column-end: 4;
-    grid-row-start: 1;
-    grid-row-end: 2;
-    font-weight: bold;
-    text-align: right;
+.date,
+.date2 {
+  grid-column-start: 3;
+  grid-column-end: 4;
+  grid-row-start: 1;
+  grid-row-end: 2;
+  font-weight: bold;
+  text-align: right;
+}
+
+.date2 {
+  grid-row-start: 2;
+  grid-row-end: 3;
 }
 
 .warning {
-    color: orange;
-    font-weight: bold;
-    grid-column-start: 1;
-    grid-column-end: 2;
-    grid-row-start: 2;
-    grid-row-end: 3;
-    text-align: left;
+  color: var(--orange);
+  font-weight: bold;
+  grid-column-start: 1;
+  grid-column-end: 2;
+  grid-row-start: 2;
+  grid-row-end: 3;
+  text-align: left;
 }
 
 .danger {
-    color: tomato;
-    font-weight: bold;
-    grid-column-start: 1;
-    grid-column-end: 2;
-    grid-row-start: 2;
-    grid-row-end: 3;
-    text-align: left;
+  color: var(--red);
+  font-weight: bold;
+  grid-column-start: 1;
+  grid-column-end: 2;
+  grid-row-start: 2;
+  grid-row-end: 3;
+  text-align: left;
 }
 
 .temperature {
-    grid-column-start: 1;
-    grid-column-end: 4;
-    grid-row-start: 1;
-    grid-row-end: 2;
-    text-align: center;
+  grid-column-start: 1;
+  grid-column-end: 4;
+  grid-row-start: 1;
+  grid-row-end: 2;
+  text-align: center;
 }
 
 .time {
-    grid-column-start: 1;
-    grid-column-end: 4;
-    grid-row-start: 2;
-    grid-row-end: 3;
-    font-size: 0.8em;
-    text-align: center;
+  grid-column-start: 1;
+  grid-column-end: 4;
+  grid-row-start: 2;
+  grid-row-end: 3;
+  font-size: 0.8em;
+  text-align: center;
 }
 
 .splash {
-    margin: 0;
-    position: absolute;
-    top: 50%;
-    -ms-transform: translateY(-50%);
-    transform: translateY(-50%);
-    left: 0px;
-    right: 0px;
+  margin: 0;
+  position: absolute;
+  top: 50%;
+  -ms-transform: translateY(-50%);
+  transform: translateY(-50%);
+  left: 0px;
+  right: 0px;
 }
 
 .loading {
-    font-size: 2em;
-    text-align: center;
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-    margin-top: -2em;
+  font-size: 2em;
+  text-align: center;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: -2em;
 }
 
 .progress-indicator {
-    width: 30%;
-    max-height: 25vh;
-    max-width: 25vh;
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-    margin-top: 6em;
+  width: 30%;
+  max-height: 25vh;
+  max-width: 25vh;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 6em;
+}
+
+.footer {
+  background-color: red;
+  color: white;
+  text-align: center;
+  flex-grow: 1;
+  background: var(--dark-blue);
+  background: linear-gradient(90deg, var(--dark-blue) 0%, var(--blue) 100%);
+  padding-top: 0.7em;
+  margin: 0px;
+}
+
+.status-bar {
+  padding: 0.7em;
+  margin: 0px;
+}
+
+.controls {
+  display: flex;
+  justify-items: stretch;
+  align-items: stretch;
+  margin-left: 0.2em;
+  margin-right: 0.2em;
+}
+
+.controls button {
+  flex-grow: 1;
+  width: 32em;
+  border: 1px solid var(--black);
+  padding: 0.7em;
+  margin: 0.2em;
+  background-color: var(--white);
+  color: var(--black);
+}
+
+.controls button:hover {
+  background-color: var(--light-blue-alt);
+}
+
+.controls button:active {
+  background-color: var(--light-blue);
+}
+
+.controls button:disabled {
+  color: var(--light-blue-alt);
+  background-color: var(--light-blue);
 }

@@ -175,12 +175,18 @@ impl Component for FrostApp {
         let status = self.props.status.clone();
         html! {
             <div class="app">
+                <div class="header">
+                    <h1>{"Frost"}</h1>
+                    <img class="app-icon" src="/icon.png" alt="frost icon" />
+                </div>
                 <Frost weather={weather} />
-                <StatusBar status={status} />
-                <div class="controls">
-                    <button disabled={geolocation_not_supported} onclick={get_location}>{"Use current location"}</button>
-                    <button disabled=true>{"Select location"}</button>
-                    <button onclick={refresh}>{"Refresh"}</button>
+                <div class="footer">
+                    <div class="controls">
+                        <button disabled={geolocation_not_supported} onclick={get_location}>{"Use current location"}</button>
+                        <button disabled=true>{"Select location"}</button>
+                        <button onclick={refresh}>{"Refresh"}</button>
+                    </div>
+                    <StatusBar status={status} />
                 </div>
             </div>
         }

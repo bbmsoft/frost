@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frost</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="manifest" href="/manifest.json">
+</head>
+
+<body>
+
+    <div class="app">
+
+        <div class="header">
+            <h1>Frost</h1>
+            <img class="app-icon" src="/icon.png" alt="frost icon"></img>
+        </div>
+
+        <div class="records">
+            <div class="record">
+                <span class="location">Bamberg</span>
+                <span class="date">2020-10-13</span>
+                <span class="warning">WARNING: &lt; 5 °C</span>
+                <span class="temperature">Temperatures drop as low as 0.3°C</span>
+                <span class="time">between 01:00 and 3:00</span>
+            </div>
+            <div class="record">
+                <span class="location">Bamberg</span>
+                <span class="date">2020-10-13</span>
+                <span class="date2">- 2020-10-14</span>
+                <span class="danger">DANGER: &lt; 0 °C</span>
+                <span class="temperature">Temperatures drop as low as -1.2°C</span>
+                <span class="time">between 20:00 and 7:00</span>
+            </div>
+            <div class="record">
+                <span class="location">Bamberg</span>
+                <span class="date">2020-10-14</span>
+                <span class="date2">- 2020-10-15</span>
+                <span class="warning">WARNING: &lt; 5 °C</span>
+                <span class="temperature">Temperatures drop as low as 1.1°C</span>
+                <span class="time">between 23:00 and 1:00</span>
+            </div>
+        </div>
+
+
+        <div class="footer">
+            <div class="controls">
+                <button>Use current location</button>
+                <button disabled="true">Select location</button>
+                <button>Refresh</button>
+            </div>
+            <div class="status-bar progress">Something is happening</div>
+        </div>
+    </div>
+
+</body>
+
+</html>
