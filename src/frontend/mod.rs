@@ -77,7 +77,7 @@ impl Component for FrostApp {
         };
 
         js::request_notification_permission(&app.on_notification_permission);
-        check_for_weather_update(&mut app);
+        app.check_for_weather_update();
 
         app
     }
@@ -108,9 +108,9 @@ impl Component for FrostApp {
                         let value = serde_json::to_string(&(lat, lon)).expect("can't fail");
                         debug!("Setting location cookie: {}", value);
                         js::set_cookie("location", &value, 30);
-                        check_for_weather_update(self);
+                        self.check_for_weather_update();
                     }
-                    LocationStatus::LocationDisabled => {}
+                    LocationStatus::LocationNotSet => {}
                 }
 
                 self.props.location = status;
@@ -151,7 +151,7 @@ impl Component for FrostApp {
                 true
             }
             Msg::Refresh => {
-                check_for_weather_update(self);
+                self.check_for_weather_update();
                 false
             }
             Msg::NotificationPermissionUpdate(notification_permission) => {
@@ -218,48 +218,49 @@ impl FrostApp {
         let text = format!("Temperatures as low as {} °C predicted.", temp_min);
         js::show_notification(&titel, &text, Some("/icon.png"), Some("frost"));
     }
-}
 
-fn check_for_weather_update(app: &mut FrostApp) {
-    if let LocationStatus::LocationRetrieved(_, _) = app.props.location {
-        match fetch_weather_data(app.link.clone()) {
-            Ok(fetch_task) => {
-                // prevent fetch task from being dropped / cancelled
-                app.fetch_task = Some(fetch_task);
-                app.link
-                    .send_message(Msg::WeatherUpdate(WeatherDataStatus::WaitingForWeatherData))
-            }
-            Err(e) => app
-                .link
-                .send_message(Msg::WeatherUpdate(WeatherDataStatus::FetchError(
-                    e.to_string(),
-                ))),
-        }
-    }
-}
-
-fn fetch_weather_data(link: ComponentLink<FrostApp>) -> Result<FetchTask, BackendError> {
-    let callback = move |response: Response<Result<String, anyhow::Error>>| {
-        let data = response.body();
-        let status = match data {
-            Ok(data) => {
-                debug!("Response from backend: {}", data);
-                match serde_json::from_str(&data) {
-                    Ok(response) => WeatherDataStatus::WeatherDataRetrieved(response),
-                    Err(e) => WeatherDataStatus::ParseError(e.to_string()),
+    fn check_for_weather_update(self: &mut FrostApp) {
+        if let LocationStatus::LocationRetrieved(_, _) = self.props.location {
+            match self.fetch_weather_data() {
+                Ok(fetch_task) => {
+                    // prevent fetch task from being dropped / cancelled
+                    self.fetch_task = Some(fetch_task);
+                    self.link
+                        .send_message(Msg::WeatherUpdate(WeatherDataStatus::WaitingForWeatherData))
+                }
+                Err(e) => {
+                    self.link
+                        .send_message(Msg::WeatherUpdate(WeatherDataStatus::FetchError(
+                            e.to_string(),
+                        )))
                 }
             }
-            Err(e) => WeatherDataStatus::FetchError(e.to_string()),
+        }
+    }
+
+    fn fetch_weather_data(&self) -> Result<FetchTask, BackendError> {
+        let callback = move |response: Response<Result<String, anyhow::Error>>| {
+            let data = response.body();
+            let status = match data {
+                Ok(data) => {
+                    debug!("Response from backend: {}", data);
+                    match serde_json::from_str(&data) {
+                        Ok(response) => WeatherDataStatus::WeatherDataRetrieved(response),
+                        Err(e) => WeatherDataStatus::ParseError(e.to_string()),
+                    }
+                }
+                Err(e) => WeatherDataStatus::FetchError(e.to_string()),
+            };
+            Msg::WeatherUpdate(status)
         };
-        Msg::WeatherUpdate(status)
-    };
 
-    let callback = link.callback(callback);
+        let callback = self.link.callback(callback);
 
-    debug!("Requesting weather data from backend...");
-    let request = Request::get("/weather").body(Nothing)?;
-    let fetch_task = convert_err(FetchService::fetch(request, callback));
-    Ok(fetch_task?)
+        debug!("Requesting weather data from backend...");
+        let request = Request::get("/weather").body(Nothing)?;
+        let fetch_task = convert_err(FetchService::fetch(request, callback));
+        Ok(fetch_task?)
+    }
 }
 
 fn convert_err(
@@ -302,14 +303,15 @@ pub fn main_js() -> Result<(), JsValue> {
 
     let location = if let Some(value) = js::get_cookie(LOCATION_COOKIE) {
         if let Ok((lat, lon)) = serde_json::from_str(&value) {
+            debug!("Got location from local cookie.");
             LocationStatus::LocationRetrieved(lat, lon)
         } else {
             warn!("Location cookie invalid.");
-            LocationStatus::WaitingForLocation
+            LocationStatus::LocationNotSet
         }
     } else {
         debug!("Location cookie not set.");
-        LocationStatus::WaitingForLocation
+        LocationStatus::LocationNotSet
     };
 
     let warning_threshold = temp_from_env("FROST_WARNING_THRESHOLD", 5.0);
@@ -319,8 +321,13 @@ pub fn main_js() -> Result<(), JsValue> {
     let value = serde_json::to_string(&thresholds).expect("can't fail");
     js::set_cookie(THRESHOLD_COOKIE, &value, 30);
     let weather = WeatherDataStatus::WaitingForWeatherData;
-    let status = None;
     let notification_permission = NotificationPermissionStatus::Default;
+    let status = match location {
+        LocationStatus::LocationRetrieved(_, _) => {
+            Some(Status::Info("Fetching weather data...".to_owned()))
+        }
+        _ => Some(Status::Info("Location not set.".to_owned())),
+    };
 
     let props = Props {
         location,

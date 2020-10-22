@@ -13,7 +13,7 @@ pub enum LocationStatus {
     WaitingForLocation,
     LocationFailed(u16, String),
     LocationRetrieved(f32, f32),
-    LocationDisabled,
+    LocationNotSet,
 }
 
 #[derive(Debug, Clone, PartialEq)]

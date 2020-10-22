@@ -32,47 +32,25 @@ impl Component for Frost {
     }
 
     fn view(&self) -> Html {
-        match &self.props.weather {
-            Some(WeatherDataStatus::WeatherDataRetrieved(data)) => match data {
-                Ok(data) => {
-                    let records: Vec<VNode> = data.cold_phases.iter().map(to_record).collect();
-                    if records.is_empty() {
-                        html! {
-                            <div class="records">
-                                {"Looks like it's going to be warm the next few days."}
-                            </div>
-                        }
-                    } else {
-                        html! {
-                            <div class="records">
-                                { records }
-                            </div>
-                        }
-                    }
-                }
-                Err(e) => html! {
-                    <div class="error">
-                        <span class="error-header">{"there was an error getting the current weather data:"}</span>
-                        <span class="error-body">{e}</span>
+        if let Some(WeatherDataStatus::WeatherDataRetrieved(Ok(data))) = &self.props.weather {
+            let records: Vec<VNode> = data.cold_phases.iter().map(to_record).collect();
+            if records.is_empty() {
+                html! {
+                    <div class="records">
+                        <div class="record">
+                            <span class="temperature">{"Looks like it's going to be warm the next few days."}</span>
+                        </div>
                     </div>
-                },
-            },
-            Some(WeatherDataStatus::WaitingForWeatherData) => html! {
-                <div class="records">
-                    {"Fetching weather data..."}
-                </div>
-            },
-            Some(WeatherDataStatus::FetchError(e)) => html! {
-                <div class="records">
-                    {"Error fetching weather data: "} {e}
-                </div>
-            },
-            Some(WeatherDataStatus::ParseError(e)) => html! {
-                <div class="records">
-                    {"Error parsing weather data: "} {e}
-                </div>
-            },
-            None => html! {},
+                }
+            } else {
+                html! {
+                    <div class="records">
+                        { records }
+                    </div>
+                }
+            }
+        } else {
+            html! {}
         }
     }
 }
