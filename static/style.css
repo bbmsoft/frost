@@ -56,12 +56,6 @@ body {
   }
 }
 
-@media (max-width: 480px) {
-  .app {
-    padding: 8px;
-  }
-}
-
 .header {
   color: var(--white);
   padding: 0.7em 1.4em 0.7em 1.4em;
