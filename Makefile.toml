@@ -1,14 +1,6 @@
 [tasks.wasm-pack-dev]
-command = "wasm-pack"
-args = ["build", "--target", "web", "--dev"]
-watch = true
-
-[tasks.wasm-pack]
-command = "wasm-pack"
-args = ["build", "--target", "web"]
-
-[tasks.webpack-dev]
-command = "webpack"
+command = "bash"
+args = ["pack-local.sh"]
 watch = true
 
 [tasks.webpack]
