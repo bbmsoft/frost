@@ -23,7 +23,8 @@ impl Component for Header {
         false
     }
 
-    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
+    fn change(&mut self, props: Self::Properties) -> ShouldRender {
+        self.props = props;
         true
     }
 

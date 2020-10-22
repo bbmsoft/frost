@@ -50,7 +50,9 @@ impl Component for Frost {
                 }
             }
         } else {
-            html! {}
+            html! {
+                <div class="records" />
+            }
         }
     }
 }

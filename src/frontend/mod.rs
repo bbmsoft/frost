@@ -139,7 +139,7 @@ impl Component for FrostApp {
                         if let WeatherDataStatus::WaitingForWeatherData = self.props.weather {
                             self.props.status = None;
                         }
-                        if let &Ok(data) = &data {
+                        if let Ok(data) = data {
                             self.try_send_weather_notification(data);
                             self.props.location_name = data.location.clone();
                         }
