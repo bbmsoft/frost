@@ -181,12 +181,12 @@ impl Component for FrostApp {
                 </div>
                 <Frost weather={weather} />
                 <div class="footer">
+                    <StatusBar status={status} />
                     <div class="controls">
                         <button disabled={geolocation_not_supported} onclick={get_location}><i class="fas fa-map-marker-alt"></i>{" Location"}</button>
                         <button disabled=true>{"Select Location"}</button>
                         <button onclick={refresh}>{"Refresh"}</button>
                     </div>
-                    <StatusBar status={status} />
                 </div>
             </div>
         }
