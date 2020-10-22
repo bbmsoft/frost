@@ -206,7 +206,7 @@ h1 {
   flex-grow: 1;
   background: var(--dark-blue);
   background: linear-gradient(90deg, var(--dark-blue) 0%, var(--blue) 100%);
-  padding-top: 0.7em;
+  padding: 0.8em 0.4em 0.8em 0.4em;
   margin: 0px;
 }
 
@@ -219,18 +219,18 @@ h1 {
   display: flex;
   justify-items: stretch;
   align-items: stretch;
-  margin-left: 0.2em;
-  margin-right: 0.2em;
 }
 
 .controls button {
   flex-grow: 1;
   width: 32em;
   border: 1px solid var(--black);
-  padding: 0.7em;
+  padding-top: 0.7em;
+  padding-bottom: 0.7em;
   margin: 0.2em;
   background-color: var(--white);
   color: var(--black);
+  outline: none;
 }
 
 .controls button:hover {
