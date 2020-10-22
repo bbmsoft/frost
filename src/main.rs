@@ -11,7 +11,6 @@ use dotenv::dotenv;
 use frost::backend::*;
 use frost::common::*;
 use rocket::fairing::AdHoc;
-use rocket::http::Cookies;
 use rocket::response::content;
 use rocket::response::NamedFile;
 use rocket::State;
@@ -37,18 +36,14 @@ fn files(file: PathBuf, root: State<RootDir>) -> Option<NamedFile> {
     NamedFile::open(Path::new(&root.0).join(file)).ok()
 }
 
-// TODO provide endpoints with query params and for use with cookies
-// TODO use weather station ID cookie for cookie based api
-// #[get("/weather?<lat>&<lon>&<warning_threshold>&<danger_threshold>")]
-// fn weather(lat: f32,lon: f32,warning_threshold: f32,danger_threshold: f32,config: State<Config>,
-#[get("/weather")]
+#[get("/weather?<lat>&<lon>&<warning_threshold>&<danger_threshold>")]
 fn weather(
-    cookies: Cookies,
+    lat: f32,
+    lon: f32,
+    warning_threshold: f32,
+    danger_threshold: f32,
     brightsky_api_endpoint: State<BrightSkyEndpoint>,
 ) -> Result<content::Json<String>, Box<dyn std::error::Error>> {
-    let (lat, lon) = get_cookie_value(LOCATION_COOKIE, &cookies)?;
-    let (warning_threshold, danger_threshold) = get_cookie_value(THRESHOLD_COOKIE, &cookies)?;
-
     let now: DateTime<Local> = Local::now();
     let noon_in_three_days: DateTime<Local> = (now + chrono::Duration::days(3))
         .with_hour(12)
@@ -96,17 +91,6 @@ fn parse_response(
             let api_error: BrightskyApiError = serde_json::from_str(brightsky_response)?;
             Ok(Err(api_error.into()))
         }
-    }
-}
-
-fn get_cookie_value(
-    name: &str,
-    cookies: &Cookies,
-) -> Result<(f32, f32), Box<dyn std::error::Error>> {
-    if let Some(value) = cookies.get(name) {
-        Ok(serde_json::from_str(value.value())?)
-    } else {
-        Err(Box::new(CookieError("Location cookie not set!")))
     }
 }
 

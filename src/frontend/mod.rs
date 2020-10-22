@@ -2,7 +2,6 @@ use self::components::frost::Frost;
 use self::components::header::Header;
 use self::components::status::StatusBar;
 use super::common::*;
-use std::env;
 use wasm_bindgen::prelude::*;
 use yew::format::Nothing;
 use yew::prelude::*;
@@ -42,6 +41,7 @@ pub struct Props {
     pub geolocation_supported: bool,
     pub notifications_supported: bool,
     pub location_name: Option<String>,
+    pub thresholds: Thresholds,
 }
 
 impl Component for FrostApp {
@@ -85,11 +85,17 @@ impl Component for FrostApp {
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::RequestDeviceLocation => {
+                self.props.location = LocationStatus::WaitingForLocation;
+                self.props.status = Some(Status::Progress(
+                    "Requesting location from device...".to_owned(),
+                ));
                 js::get_location(&self.on_location_success, &self.on_location_error);
-                false
+                true
             }
             Msg::LocationUpdate(status) => {
-                match &status {
+                self.props.location = status.clone();
+
+                match status {
                     LocationStatus::WaitingForLocation => {
                         self.props.status = Some(Status::Progress(
                             "Waiting for location service...".to_owned(),
@@ -106,14 +112,12 @@ impl Component for FrostApp {
                             self.props.status = None;
                         }
                         let value = serde_json::to_string(&(lat, lon)).expect("can't fail");
-                        debug!("Setting location cookie: {}", value);
-                        js::set_cookie("location", &value, 30);
+                        debug!("Storing location: {}", value);
+                        js::store(LOCATION_KEY, &value);
                         self.check_for_weather_update();
                     }
                     LocationStatus::LocationNotSet => {}
                 }
-
-                self.props.location = status;
 
                 true
             }
@@ -220,8 +224,8 @@ impl FrostApp {
     }
 
     fn check_for_weather_update(self: &mut FrostApp) {
-        if let LocationStatus::LocationRetrieved(_, _) = self.props.location {
-            match self.fetch_weather_data() {
+        if let LocationStatus::LocationRetrieved(lat, lon) = self.props.location {
+            match self.fetch_weather_data(lat, lon) {
                 Ok(fetch_task) => {
                     // prevent fetch task from being dropped / cancelled
                     self.fetch_task = Some(fetch_task);
@@ -238,7 +242,7 @@ impl FrostApp {
         }
     }
 
-    fn fetch_weather_data(&self) -> Result<FetchTask, BackendError> {
+    fn fetch_weather_data(&self, lat: f32, lon: f32) -> Result<FetchTask, BackendError> {
         let callback = move |response: Response<Result<String, anyhow::Error>>| {
             let data = response.body();
             let status = match data {
@@ -256,8 +260,15 @@ impl FrostApp {
 
         let callback = self.link.callback(callback);
 
+        let warning_threshold = self.props.thresholds.0;
+        let danger_threshold = self.props.thresholds.1;
+
+        let uri = format!(
+            "/weather?lat={}&lon={}&warning_threshold={}&danger_threshold={}",
+            lat, lon, warning_threshold, danger_threshold
+        );
         debug!("Requesting weather data from backend...");
-        let request = Request::get("/weather").body(Nothing)?;
+        let request = Request::get(&uri).body(Nothing)?;
         let fetch_task = convert_err(FetchService::fetch(request, callback));
         Ok(fetch_task?)
     }
@@ -301,25 +312,41 @@ pub fn main_js() -> Result<(), JsValue> {
     let geolocation_supported = js::is_geolocation_supported();
     let notifications_supported = js::are_notifications_supported();
 
-    let location = if let Some(value) = js::get_cookie(LOCATION_COOKIE) {
+    let location = if let Some(value) = js::get_stored(LOCATION_KEY) {
         if let Ok((lat, lon)) = serde_json::from_str(&value) {
-            debug!("Got location from local cookie.");
+            debug!("Got location from web storage.");
             LocationStatus::LocationRetrieved(lat, lon)
         } else {
-            warn!("Location cookie invalid.");
+            warn!("Stored location invalid.");
             LocationStatus::LocationNotSet
         }
     } else {
-        debug!("Location cookie not set.");
+        debug!("No location stored.");
         LocationStatus::LocationNotSet
     };
 
-    let warning_threshold = temp_from_env("FROST_WARNING_THRESHOLD", 5.0);
-    let danger_threshold = temp_from_env("FROST_DANGER_THRESHOLD", 0.0);
-    let thresholds = (warning_threshold, danger_threshold);
+    let thresholds = if let Some(value) = js::get_stored(THRESHOLD_KEY) {
+        if let Ok(thresholds) = serde_json::from_str(&value) {
+            debug!("Got thresholds from web storage.");
+            Some(thresholds)
+        } else {
+            warn!("Stored thresholds invalid.");
+            None
+        }
+    } else {
+        debug!("No thresholds stored.");
+        None
+    };
 
-    let value = serde_json::to_string(&thresholds).expect("can't fail");
-    js::set_cookie(THRESHOLD_COOKIE, &value, 30);
+    let thresholds = if let Some(thresholds) = thresholds {
+        thresholds
+    } else {
+        let thresholds = (5.0, 0.0);
+        let value = serde_json::to_string(&thresholds).expect("can't fail");
+        js::store(THRESHOLD_KEY, &value);
+        thresholds
+    };
+
     let weather = WeatherDataStatus::WaitingForWeatherData;
     let notification_permission = NotificationPermissionStatus::Default;
     let status = match location {
@@ -337,24 +364,10 @@ pub fn main_js() -> Result<(), JsValue> {
         geolocation_supported,
         notifications_supported,
         location_name: None,
+        thresholds,
     };
 
     App::<FrostApp>::new().mount_to_body_with_props(props);
 
     Ok(())
-}
-
-fn temp_from_env(key: &str, default: f32) -> f32 {
-    env::var(key).map_or_else(
-        |e| {
-            warn!("Could not get value of {}: {}", key, e);
-            default
-        },
-        |v| {
-            v.parse().unwrap_or_else(|e| {
-                warn!("Error parsing {}: {}", v, e);
-                default
-            })
-        },
-    )
 }

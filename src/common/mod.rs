@@ -1,12 +1,12 @@
 use chrono::prelude::*;
 use std::fmt;
 
-pub const LOCATION_COOKIE: &'static str = "location";
-pub const THRESHOLD_COOKIE: &'static str = "thresholds";
+pub const LOCATION_KEY: &'static str = "location";
+pub const THRESHOLD_KEY: &'static str = "thresholds";
 
 pub type BackendResult = Result<BackendResponse, BackendError>;
-pub type LocationCookie = (f32, f32);
-pub type ThresholdCookie = (f32, f32);
+pub type Location = (f32, f32);
+pub type Thresholds = (f32, f32);
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum LocationStatus {
