@@ -4,7 +4,7 @@ use std::fmt;
 pub const LOCATION_COOKIE: &'static str = "location";
 pub const THRESHOLD_COOKIE: &'static str = "thresholds";
 
-pub type BackendResult = Result<Vec<ColdPhase>, BackendError>;
+pub type BackendResult = Result<BackendResponse, BackendError>;
 pub type LocationCookie = (f32, f32);
 pub type ThresholdCookie = (f32, f32);
 
@@ -39,10 +39,14 @@ pub enum Status {
     Warning { title: String, body: String },
     Error { title: String, body: String },
 }
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+pub struct BackendResponse {
+    pub location: Option<String>,
+    pub cold_phases: Vec<ColdPhase>,
+}
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct ColdPhase {
-    pub location: String,
     pub min_temp: f32,
     pub start: DateTime<Local>,
     pub end: DateTime<Local>,

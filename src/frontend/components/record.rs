@@ -30,7 +30,7 @@ impl Component for Record {
     fn view(&self) -> Html {
         let phase = &self.props.phase;
 
-        let location = &phase.location;
+        // let location = &phase.location;
         let date_start = phase.start.format("%Y-%m-%d");
         let class = phase.record_type.to_string();
         let type_text = class.to_uppercase();
@@ -50,7 +50,7 @@ impl Component for Record {
 
         html! {
             <div class="record">
-                <span class="location">{location}</span>
+                // <span class="location">{location}</span>
                 <span class="date">{date_start}</span>
                 {date2}
                 <span class={class}>{type_text}{": "}{explanation}</span>

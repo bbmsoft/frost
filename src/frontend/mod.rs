@@ -1,4 +1,5 @@
 use self::components::frost::Frost;
+use self::components::header::Header;
 use self::components::status::StatusBar;
 use super::common::*;
 use std::env;
@@ -40,6 +41,7 @@ pub struct Props {
     pub notification_permission: NotificationPermissionStatus,
     pub geolocation_supported: bool,
     pub notifications_supported: bool,
+    pub location_name: Option<String>,
 }
 
 impl Component for FrostApp {
@@ -75,7 +77,7 @@ impl Component for FrostApp {
         };
 
         js::request_notification_permission(&app.on_notification_permission);
-        check_for_weather_update(&mut app, props.location, link);
+        check_for_weather_update(&mut app);
 
         app
     }
@@ -90,7 +92,7 @@ impl Component for FrostApp {
                 match &status {
                     LocationStatus::WaitingForLocation => {
                         self.props.status = Some(Status::Progress(
-                            "Waitig for location service...".to_owned(),
+                            "Waiting for location service...".to_owned(),
                         ));
                     }
                     LocationStatus::LocationFailed(_code, msg) => {
@@ -106,11 +108,7 @@ impl Component for FrostApp {
                         let value = serde_json::to_string(&(lat, lon)).expect("can't fail");
                         debug!("Setting location cookie: {}", value);
                         js::set_cookie("location", &value, 30);
-                        check_for_weather_update(
-                            self,
-                            self.props.location.clone(),
-                            self.link.clone(),
-                        );
+                        check_for_weather_update(self);
                     }
                     LocationStatus::LocationDisabled => {}
                 }
@@ -143,6 +141,7 @@ impl Component for FrostApp {
                         }
                         if let &Ok(data) = &data {
                             self.try_send_weather_notification(data);
+                            self.props.location_name = data.location.clone();
                         }
                     }
                 }
@@ -152,8 +151,7 @@ impl Component for FrostApp {
                 true
             }
             Msg::Refresh => {
-                // TODO
-                debug!("Refreshing weather data...");
+                check_for_weather_update(self);
                 false
             }
             Msg::NotificationPermissionUpdate(notification_permission) => {
@@ -173,12 +171,10 @@ impl Component for FrostApp {
         let refresh = self.link.callback(|_| Msg::Refresh);
         let weather = self.props.weather.clone();
         let status = self.props.status.clone();
+        let location = self.props.location_name.clone();
         html! {
             <div class="app">
-                <div class="header">
-                    <h1>{"Frost"}</h1>
-                    <img class="app-icon" src="/icon.png" alt="frost icon" />
-                </div>
+                <Header location={location} />
                 <Frost weather={weather} />
                 <div class="footer">
                     <StatusBar status={status} />
@@ -194,13 +190,13 @@ impl Component for FrostApp {
 }
 
 impl FrostApp {
-    fn try_send_weather_notification(&self, data: &Vec<ColdPhase>) {
-        if data.is_empty() {
+    fn try_send_weather_notification(&self, data: &BackendResponse) {
+        if data.cold_phases.is_empty() {
             return;
         }
 
         if self.props.notification_permission == NotificationPermissionStatus::Granted {
-            self.send_weather_notification(data);
+            self.send_weather_notification(&data.cold_phases);
         }
     }
 
@@ -224,30 +220,25 @@ impl FrostApp {
     }
 }
 
-fn check_for_weather_update(
-    app: &mut FrostApp,
-    location: LocationStatus,
-    link: ComponentLink<FrostApp>,
-) {
-    if let LocationStatus::LocationRetrieved(lat, lon) = location {
-        match fetch_weather_data(lat, lon, link.clone()) {
+fn check_for_weather_update(app: &mut FrostApp) {
+    if let LocationStatus::LocationRetrieved(_, _) = app.props.location {
+        match fetch_weather_data(app.link.clone()) {
             Ok(fetch_task) => {
                 // prevent fetch task from being dropped / cancelled
                 app.fetch_task = Some(fetch_task);
-                link.send_message(Msg::WeatherUpdate(WeatherDataStatus::WaitingForWeatherData))
+                app.link
+                    .send_message(Msg::WeatherUpdate(WeatherDataStatus::WaitingForWeatherData))
             }
-            Err(e) => link.send_message(Msg::WeatherUpdate(WeatherDataStatus::FetchError(
-                e.to_string(),
-            ))),
+            Err(e) => app
+                .link
+                .send_message(Msg::WeatherUpdate(WeatherDataStatus::FetchError(
+                    e.to_string(),
+                ))),
         }
     }
 }
 
-fn fetch_weather_data(
-    lat: f32,
-    lon: f32,
-    link: ComponentLink<FrostApp>,
-) -> Result<FetchTask, BackendError> {
+fn fetch_weather_data(link: ComponentLink<FrostApp>) -> Result<FetchTask, BackendError> {
     let callback = move |response: Response<Result<String, anyhow::Error>>| {
         let data = response.body();
         let status = match data {
@@ -338,6 +329,7 @@ pub fn main_js() -> Result<(), JsValue> {
         notification_permission,
         geolocation_supported,
         notifications_supported,
+        location_name: None,
     };
 
     App::<FrostApp>::new().mount_to_body_with_props(props);

@@ -5,7 +5,6 @@ use yew::prelude::*;
 use yew::virtual_dom::VNode;
 
 pub struct Frost {
-    link: ComponentLink<Self>,
     props: Props,
 }
 
@@ -14,24 +13,17 @@ pub struct Props {
     pub weather: Option<WeatherDataStatus>,
 }
 
-pub enum Msg {
-    WeatherUpdate(WeatherDataStatus),
-}
-
 impl Component for Frost {
-    type Message = Msg;
+    type Message = ();
 
     type Properties = Props;
 
-    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        Frost { link, props }
+    fn create(props: Self::Properties, _link: ComponentLink<Self>) -> Self {
+        Frost { props }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
-        match msg {
-            Msg::WeatherUpdate(weather) => self.props.weather = Some(weather),
-        }
-        true
+    fn update(&mut self, _msg: Self::Message) -> ShouldRender {
+        false
     }
 
     fn change(&mut self, props: Self::Properties) -> ShouldRender {
@@ -43,7 +35,7 @@ impl Component for Frost {
         match &self.props.weather {
             Some(WeatherDataStatus::WeatherDataRetrieved(data)) => match data {
                 Ok(data) => {
-                    let records: Vec<VNode> = data.iter().map(to_record).collect();
+                    let records: Vec<VNode> = data.cold_phases.iter().map(to_record).collect();
                     if records.is_empty() {
                         html! {
                             <div class="records">
