@@ -1,8 +1,8 @@
-use crate::common::Place;
 use crate::frontend;
 use crate::frontend::js;
 use crate::frontend::FrostApp;
 use wasm_bindgen::prelude::*;
+use web_sys::HtmlElement;
 use yew::prelude::*;
 
 #[derive(Debug)]
@@ -10,12 +10,13 @@ pub struct PlacePicker {
     link: ComponentLink<Self>,
     props: Props,
     on_place_selected: Closure<dyn Fn(String)>,
+    input_ref: NodeRef,
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Msg {
     PickPlace,
-    PlacePicked(Option<Place>),
+    PlacePicked(Option<String>),
 }
 
 #[derive(Debug, Clone, Properties)]
@@ -41,6 +42,7 @@ impl Component for PlacePicker {
             link,
             props,
             on_place_selected,
+            input_ref: NodeRef::default(),
         }
     }
 
@@ -58,13 +60,18 @@ impl Component for PlacePicker {
         match self.props.state {
             Msg::PickPlace => html! {
                 html! {
-                    <input type="text" id="place-picker" />
+                    <input type="text" id="place-picker" ref=self.input_ref.clone() />
                 }
             },
             Msg::PlacePicked(_) => {
                 let callback = self.link.callback(|_| Msg::PickPlace);
+                let location = if let Msg::PlacePicked(Some(location)) = &self.props.state {
+                    location
+                } else {
+                    "No Location Selected"
+                };
                 html! {
-                    <button onclick={callback}>{"Select Location"}</button>
+                    <button class="location-header" onclick={callback}>{location}</button>
                 }
             }
         }
@@ -73,6 +80,11 @@ impl Component for PlacePicker {
     fn rendered(&mut self, _first_render: bool) {
         if self.props.state == Msg::PickPlace {
             js::init_autocomplete("place-picker", &self.on_place_selected);
+            if let Some(input) = self.input_ref.cast::<HtmlElement>() {
+                if let Err(e) = input.focus() {
+                    error!("{:#?}", e);
+                }
+            }
         }
     }
 }

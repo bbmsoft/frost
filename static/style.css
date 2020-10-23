@@ -57,8 +57,9 @@ body {
 }
 
 .header {
+  font-size: 1.8em;
   color: var(--white);
-  padding: 0.7em 1.4em 0.7em 1.4em;
+  padding: 0.6em 1em 0.6em 1em;
   border-bottom-width: 1px;
   background: var(--blue);
   background: linear-gradient(90deg, var(--blue) 0%, var(--dark-blue) 100%);
@@ -67,15 +68,47 @@ body {
   align-items: center;
 }
 
-.location-header {
+.space {
   flex-grow: 999;
   display: inline-block;
 }
 
+.header button {
+  font-size: 1em;
+  min-width: 2em;
+  height: 2em;
+  border-radius: 1em;
+  border: none;
+  margin-left: 0.2em;
+  margin-right: 0.2em;
+  background-color: var(--blue);
+  color: var(--white);
+  outline: none;
+}
+
+.header button:hover {
+  color: var(--black);
+  background-color: var(--light-blue-alt);
+}
+
+.header button:active {
+  color: var(--light-blue-alt);
+  background-color: var(--dark-blue);
+}
+
+.location-header {
+  margin-right: 0.2em;
+  font-weight: bold;
+  width: auto;
+  padding-left: 0.6em;
+  padding-right: 0.6em;
+}
+
 .app-icon {
-  max-width: 4em;
-  max-height: 4em;
+  max-width: 2em;
+  max-height: 2em;
   flex-grow: 1;
+  margin-left: 0.2em;
 }
 
 .records {
@@ -84,7 +117,7 @@ body {
   justify-content: center;
   align-items: stretch;
   justify-content: flex-start;
-  padding: 1.4em;
+  padding: 2em;
   flex-grow: 999;
 }
 

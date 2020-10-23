@@ -1,6 +1,4 @@
 export const init_autocomplete_js = (id, callback) => {
-    console.log(`initializing autocomplete for text field $(id)`);
-
     // Create the autocomplete object, restricting the search predictions to
     // geographical location types.
     const autocomplete = new google.maps.places.Autocomplete(

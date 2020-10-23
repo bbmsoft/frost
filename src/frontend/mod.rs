@@ -1,7 +1,5 @@
 use self::components::frost::Frost;
 use self::components::header::Header;
-use self::components::place_picker;
-use self::components::place_picker::PlacePicker;
 use self::components::status::StatusBar;
 use super::common::*;
 use wasm_bindgen::prelude::*;
@@ -88,6 +86,7 @@ impl Component for FrostApp {
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::RequestDeviceLocation => {
+                self.props.location_name = None;
                 self.props.location = LocationStatus::WaitingForLocation;
                 self.props.status = Some(Status::Progress(
                     "Requesting location from device...".to_owned(),
@@ -100,6 +99,7 @@ impl Component for FrostApp {
 
                 match status {
                     LocationStatus::WaitingForLocation => {
+                        self.props.location_name = None;
                         self.props.status = Some(Status::Progress(
                             "Waiting for location service...".to_owned(),
                         ));
@@ -148,7 +148,9 @@ impl Component for FrostApp {
                         }
                         if let Ok(data) = data {
                             self.try_send_weather_notification(data);
-                            self.props.location_name = data.location.clone();
+                            if self.props.location_name.is_none() {
+                                self.props.location_name = data.location.clone();
+                            }
                         }
                     }
                 }
@@ -159,6 +161,7 @@ impl Component for FrostApp {
             }
             Msg::PlaceSelected(place) => {
                 if let Some(geometry) = place.geometry {
+                    self.props.location_name = Some(place.name);
                     let lat = geometry.location.lat;
                     let lon = geometry.location.lng;
                     self.link
@@ -190,25 +193,17 @@ impl Component for FrostApp {
     }
 
     fn view(&self) -> Html {
-        let get_location = self.link.callback(move |_| Msg::RequestDeviceLocation);
-        let geolocation_not_supported = !self.props.geolocation_supported;
-        let refresh = self.link.callback(|_| Msg::Refresh);
+        let geolocation_supported = self.props.geolocation_supported;
         let weather = self.props.weather.clone();
         let status = self.props.status.clone();
         let location = self.props.location_name.clone();
-        let place_picker_state = place_picker::Msg::PlacePicked(None);
         let app_link = self.link.clone();
         html! {
             <div class="app">
-                <Header location={location} />
+                <Header location={location} app_link={app_link} notifications_on={false} geolocation_supported={geolocation_supported} />
                 <Frost weather={weather} />
                 <div class="footer">
                     <StatusBar status={status} />
-                    <div class="controls">
-                        <button disabled={geolocation_not_supported} onclick={get_location}><i class="fas fa-map-marker-alt"></i>{" Location"}</button>
-                        <PlacePicker state={place_picker_state} app_link={app_link} />
-                        <button onclick={refresh}><i class="fas fa-sync-alt"></i>{" Refresh"}</button>
-                    </div>
                 </div>
             </div>
         }
