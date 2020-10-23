@@ -87,7 +87,8 @@ fn parse_response(
             let cold_phases = accumulate_cold_phases(warning_threshold, danger_threshold, &data);
             Ok(Ok(cold_phases))
         }
-        Err(_) => {
+        Err(e) => {
+            error!("Error parsing brightsky data: {}", e);
             let api_error: BrightskyApiError = serde_json::from_str(brightsky_response)?;
             Ok(Err(api_error.into()))
         }

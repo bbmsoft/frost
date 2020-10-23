@@ -14,39 +14,41 @@ pub fn accumulate_cold_phases(
 
     for data in data.weather_data_sets() {
         location = Some(data.source().station_name.to_owned());
-        let temp = data.weather_data().temperature;
-        if temp > warning_threshold {
-            // end current phase if there is on
-            if let Some(phase) = current_phase.as_mut() {
-                phases.push(phase.clone());
-                current_phase = None;
+
+        if let Some(temp) = data.weather_data().temperature {
+            if temp > warning_threshold {
+                // end current phase if there is on
+                if let Some(phase) = current_phase.as_mut() {
+                    phases.push(phase.clone());
+                    current_phase = None;
+                }
+            } else if let Some(phase) = current_phase.as_mut() {
+                // update current phase if there is one
+                if temp < phase.min_temp {
+                    phase.min_temp = temp;
+                }
+                if temp <= danger_threshold {
+                    phase.record_type = RecordType::Danger;
+                }
+                phase.end = data.weather_data().timestamp.with_timezone(&Local)
+                    + chrono::Duration::hours(1);
+            } else {
+                // start new phase
+                let phase = ColdPhase {
+                    min_temp: temp,
+                    start: data.weather_data().timestamp.with_timezone(&Local),
+                    end: data.weather_data().timestamp.with_timezone(&Local)
+                        + chrono::Duration::hours(1),
+                    record_type: if temp <= danger_threshold {
+                        RecordType::Danger
+                    } else {
+                        RecordType::Warning
+                    },
+                    warning_threshold,
+                    danger_threshold,
+                };
+                current_phase = Some(phase);
             }
-        } else if let Some(phase) = current_phase.as_mut() {
-            // update current phase if there is one
-            if temp < phase.min_temp {
-                phase.min_temp = temp;
-            }
-            if temp <= danger_threshold {
-                phase.record_type = RecordType::Danger;
-            }
-            phase.end =
-                data.weather_data().timestamp.with_timezone(&Local) + chrono::Duration::hours(1);
-        } else {
-            // start new phase
-            let phase = ColdPhase {
-                min_temp: temp,
-                start: data.weather_data().timestamp.with_timezone(&Local),
-                end: data.weather_data().timestamp.with_timezone(&Local)
-                    + chrono::Duration::hours(1),
-                record_type: if temp <= danger_threshold {
-                    RecordType::Danger
-                } else {
-                    RecordType::Warning
-                },
-                warning_threshold,
-                danger_threshold,
-            };
-            current_phase = Some(phase);
         }
     }
 
