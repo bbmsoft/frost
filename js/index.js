@@ -1,7 +1,4 @@
-function placesInitialized() {
-    console.log("map initialized")
-    import("../pkg/index.js").catch(console.error).then(wasm => console.log("wasm successfully loaded"))
-}
+import("../pkg/index.js").catch(console.error);
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {

@@ -4,8 +4,8 @@ args = ["pack-local.sh"]
 watch = true
 
 [tasks.webpack]
-command = "webpack"
-args = ["--mode=production"]
+command = "npm"
+args = ["run", "build", "--", "--mode=production"]
 
 [tasks.run-dev]
 command = "cargo"
