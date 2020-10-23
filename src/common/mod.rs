@@ -5,7 +5,6 @@ pub const LOCATION_KEY: &'static str = "location";
 pub const THRESHOLD_KEY: &'static str = "thresholds";
 
 pub type BackendResult = Result<BackendResponse, BackendError>;
-pub type Location = (f32, f32);
 pub type Thresholds = (f32, f32);
 
 #[derive(Debug, Clone, PartialEq)]
@@ -118,3 +117,20 @@ impl fmt::Display for BrightskyApiError {
 }
 
 impl std::error::Error for BrightskyApiError {}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Place {
+    pub name: String,
+    pub geometry: Option<Geometry>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Geometry {
+    pub location: Location,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Location {
+    pub lat: f32,
+    pub lng: f32,
+}

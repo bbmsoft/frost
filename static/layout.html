@@ -8,6 +8,10 @@
     <link rel="stylesheet" type="text/css" href="style.css">
     <link rel="manifest" href="/manifest.json">
     <script src="https://kit.fontawesome.com/45e785b436.js" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="../js/index.js"></script>
+    <script defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDzEu_CRdxOVnniW-4AgIElYuw4hdw7hO4&libraries=places&callback=initMap">
+        </script>
 </head>
 
 <body>
@@ -50,12 +54,20 @@
             <div class="status-bar progress">Something is happening</div>
             <div class="controls">
                 <button><i class="fas fa-map-marker-alt"></i>&#8199Location</button>
-                <button disabled="true">Select Location</button>
+
+                <input id="color" list="suggestions">
+                <datalist id="suggestions">
+                    <option value="Black">
+                    <option value="Red">
+                    <option value="Green">
+                    <option value="Blue">
+                    <option value="White">
+                </datalist>
+
                 <button>Refresh</button>
             </div>
         </div>
     </div>
-
 </body>
 
 </html>

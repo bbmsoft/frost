@@ -47,6 +47,13 @@ extern "C" {
     fn get_stored_js(key: &str) -> Result<Option<String>, JsValue>;
 }
 
+#[wasm_bindgen(module = "/js/places.js")]
+extern "C" {
+    #[wasm_bindgen(catch)]
+    fn init_autocomplete_js(id: &str, on_selected: &Closure<dyn Fn(String)>)
+        -> Result<(), JsValue>;
+}
+
 // apparently this is not actually necessary
 // compiling and running code that calls the js functions without an unsafe block works just fine
 // however VS code with rust-analyzer shows an error, which is very annoying in development,
@@ -129,6 +136,15 @@ pub fn get_stored(key: &str) -> Option<String> {
                 error!("Error getting value from web storage: {:?}", e);
                 None
             }
+        }
+    }
+}
+
+#[allow(unused_unsafe)]
+pub fn init_autocomplete(id: &str, on_selected: &Closure<dyn Fn(String)>) {
+    unsafe {
+        if let Err(e) = init_autocomplete_js(id, on_selected) {
+            error!("Error initializing autocomplete: {:?}", e);
         }
     }
 }

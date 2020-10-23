@@ -1,5 +1,7 @@
 use self::components::frost::Frost;
 use self::components::header::Header;
+use self::components::place_picker;
+use self::components::place_picker::PlacePicker;
 use self::components::status::StatusBar;
 use super::common::*;
 use wasm_bindgen::prelude::*;
@@ -29,6 +31,7 @@ pub enum Msg {
     LocationUpdate(LocationStatus),
     WeatherUpdate(WeatherDataStatus),
     NotificationPermissionUpdate(NotificationPermissionStatus),
+    PlaceSelected(Place),
     Refresh,
 }
 
@@ -154,6 +157,23 @@ impl Component for FrostApp {
 
                 true
             }
+            Msg::PlaceSelected(place) => {
+                if let Some(geometry) = place.geometry {
+                    let lat = geometry.location.lat;
+                    let lon = geometry.location.lng;
+                    self.link
+                        .send_message(Msg::LocationUpdate(LocationStatus::LocationRetrieved(
+                            lat, lon,
+                        )));
+                    false
+                } else {
+                    self.props.status = Some(Status::Error {
+                        title: "Invalid location".to_owned(),
+                        body: "Please select a suggestion from the dropdown list!".to_owned(),
+                    });
+                    true
+                }
+            }
             Msg::Refresh => {
                 self.check_for_weather_update();
                 false
@@ -176,6 +196,8 @@ impl Component for FrostApp {
         let weather = self.props.weather.clone();
         let status = self.props.status.clone();
         let location = self.props.location_name.clone();
+        let place_picker_state = place_picker::Msg::PlacePicked(None);
+        let app_link = self.link.clone();
         html! {
             <div class="app">
                 <Header location={location} />
@@ -184,7 +206,7 @@ impl Component for FrostApp {
                     <StatusBar status={status} />
                     <div class="controls">
                         <button disabled={geolocation_not_supported} onclick={get_location}><i class="fas fa-map-marker-alt"></i>{" Location"}</button>
-                        <button disabled=true>{"Select Location"}</button>
+                        <PlacePicker state={place_picker_state} app_link={app_link} />
                         <button onclick={refresh}><i class="fas fa-sync-alt"></i>{" Refresh"}</button>
                     </div>
                 </div>
