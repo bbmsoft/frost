@@ -1,3 +1,4 @@
+use crate::common::*;
 use crate::frontend;
 use crate::frontend::js;
 use crate::frontend::FrostApp;
@@ -13,20 +14,14 @@ pub struct PlacePicker {
     input_ref: NodeRef,
 }
 
-#[derive(Debug, Clone, PartialEq)]
-pub enum Msg {
-    PickPlace,
-    PlacePicked(Option<String>),
-}
-
 #[derive(Debug, Clone, Properties)]
 pub struct Props {
-    pub state: Msg,
+    pub location: Option<String>,
     pub app_link: ComponentLink<FrostApp>,
 }
 
 impl Component for PlacePicker {
-    type Message = Msg;
+    type Message = PlaceStatus;
     type Properties = Props;
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
@@ -34,7 +29,9 @@ impl Component for PlacePicker {
         let on_place_selected = Closure::new(move |place_json: String| match serde_json::from_str(
             &place_json,
         ) {
-            Ok(place) => link_place.send_message(frontend::Msg::PlaceSelected(place)),
+            Ok(place) => link_place.send_message(frontend::Msg::PlaceUpdate(
+                PlaceStatus::PlacePicked(Some(place)),
+            )),
             Err(e) => error!("Error parsing place: {}\nJson was:\n{}", e, place_json),
         });
 
@@ -47,7 +44,10 @@ impl Component for PlacePicker {
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
-        self.props.state = msg;
+        match msg {
+            PlaceStatus::PickPlace | PlaceStatus::PlacePicked(None) => self.props.location = None,
+            PlaceStatus::PlacePicked(Some(place)) => self.props.location = Some(place.name.clone()),
+        }
         true
     }
 
@@ -57,28 +57,23 @@ impl Component for PlacePicker {
     }
 
     fn view(&self) -> Html {
-        match self.props.state {
-            Msg::PickPlace => html! {
+        match &self.props.location {
+            None => html! {
                 html! {
                     <input type="text" id="place-picker" ref=self.input_ref.clone() />
                 }
             },
-            Msg::PlacePicked(_) => {
-                let callback = self.link.callback(|_| Msg::PickPlace);
-                let location = if let Msg::PlacePicked(Some(location)) = &self.props.state {
-                    location
-                } else {
-                    "No Location Selected"
-                };
+            Some(place) => {
+                let callback = self.link.callback(|_| PlaceStatus::PickPlace);
                 html! {
-                    <button class="location-header" onclick={callback}>{location}</button>
+                    <button class="location-header" onclick={callback}>{place}</button>
                 }
             }
         }
     }
 
     fn rendered(&mut self, _first_render: bool) {
-        if self.props.state == Msg::PickPlace {
+        if self.props.location.is_none() {
             js::init_autocomplete("place-picker", &self.on_place_selected);
             if let Some(input) = self.input_ref.cast::<HtmlElement>() {
                 if let Err(e) = input.focus() {

@@ -9,10 +9,9 @@ pub type Thresholds = (f32, f32);
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum LocationStatus {
-    WaitingForLocation,
+    RequestDeviceLocation,
     LocationFailed(u16, String),
     LocationRetrieved(f32, f32),
-    LocationNotSet,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -124,6 +123,17 @@ pub struct Place {
     pub geometry: Option<Geometry>,
 }
 
+impl Place {
+    pub fn new(name: String, lat: f32, lng: f32) -> Place {
+        Place {
+            name,
+            geometry: Some(Geometry {
+                location: Location { lat, lng },
+            }),
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Geometry {
     pub location: Location,
@@ -133,4 +143,10 @@ pub struct Geometry {
 pub struct Location {
     pub lat: f32,
     pub lng: f32,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum PlaceStatus {
+    PickPlace,
+    PlacePicked(Option<Place>),
 }

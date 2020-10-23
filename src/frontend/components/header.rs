@@ -1,5 +1,5 @@
-use super::place_picker;
 use super::place_picker::PlacePicker;
+use crate::common::*;
 use crate::frontend;
 use crate::frontend::FrostApp;
 use yew::prelude::*;
@@ -36,7 +36,7 @@ impl Component for Header {
     }
 
     fn view(&self) -> Html {
-        let location = place_picker::Msg::PlacePicked(self.props.location.clone());
+        let location = self.props.location.clone();
         let app_link = self.props.app_link.clone();
         let notifications_icon = if self.props.notifications_on {
             "fas fa-sync-alt"
@@ -45,15 +45,14 @@ impl Component for Header {
         };
 
         let geolocation_not_supported = !self.props.geolocation_supported;
-        let get_location = self
-            .props
-            .app_link
-            .callback(move |_| frontend::Msg::RequestDeviceLocation);
+        let get_location = self.props.app_link.callback(move |_| {
+            frontend::Msg::LocationUpdate(LocationStatus::RequestDeviceLocation)
+        });
         let refresh = self.props.app_link.callback(|_| frontend::Msg::Refresh);
 
         html! {
             <div class="header">
-                <PlacePicker state={location} app_link={app_link} />
+                <PlacePicker location={location} app_link={app_link} />
                 <button disabled={geolocation_not_supported} onclick={get_location}><i class="fas fa-map-marker-alt"></i></button>
                 <div class="space"></div>
                 <button disabled=true><i class={notifications_icon}></i></button>

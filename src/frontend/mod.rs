@@ -25,23 +25,22 @@ pub struct FrostApp {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Msg {
-    RequestDeviceLocation,
-    LocationUpdate(LocationStatus),
     WeatherUpdate(WeatherDataStatus),
     NotificationPermissionUpdate(NotificationPermissionStatus),
-    PlaceSelected(Place),
     Refresh,
+    LocationUpdate(LocationStatus),
+    PlaceUpdate(PlaceStatus),
 }
 
 #[derive(Debug, Clone, Properties, PartialEq)]
 pub struct Props {
-    pub location: LocationStatus,
+    pub location: Option<LocationStatus>,
+    pub selected_place: PlaceStatus,
     pub weather: WeatherDataStatus,
     pub status: Option<Status>,
     pub notification_permission: NotificationPermissionStatus,
     pub geolocation_supported: bool,
     pub notifications_supported: bool,
-    pub location_name: Option<String>,
     pub thresholds: Thresholds,
 }
 
@@ -85,25 +84,9 @@ impl Component for FrostApp {
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
-            Msg::RequestDeviceLocation => {
-                self.props.location_name = None;
-                self.props.location = LocationStatus::WaitingForLocation;
-                self.props.status = Some(Status::Progress(
-                    "Requesting location from device...".to_owned(),
-                ));
-                js::get_location(&self.on_location_success, &self.on_location_error);
-                true
-            }
             Msg::LocationUpdate(status) => {
-                self.props.location = status.clone();
-
+                self.props.location = Some(status.clone());
                 match status {
-                    LocationStatus::WaitingForLocation => {
-                        self.props.location_name = None;
-                        self.props.status = Some(Status::Progress(
-                            "Waiting for location service...".to_owned(),
-                        ));
-                    }
                     LocationStatus::LocationFailed(_code, msg) => {
                         self.props.status = Some(Status::Error {
                             title: "Error getting location:".to_owned(),
@@ -111,15 +94,18 @@ impl Component for FrostApp {
                         });
                     }
                     LocationStatus::LocationRetrieved(lat, lon) => {
-                        if let LocationStatus::WaitingForLocation = self.props.location {
+                        if let Some(LocationStatus::RequestDeviceLocation) = self.props.location {
                             self.props.status = None;
                         }
-                        let value = serde_json::to_string(&(lat, lon)).expect("can't fail");
-                        debug!("Storing location: {}", value);
-                        js::store(LOCATION_KEY, &value);
+                        self.props.location = Some(LocationStatus::LocationRetrieved(lat, lon));
                         self.check_for_weather_update();
                     }
-                    LocationStatus::LocationNotSet => {}
+                    LocationStatus::RequestDeviceLocation => {
+                        self.props.status = Some(Status::Progress(
+                            "Requesting location from device...".to_owned(),
+                        ));
+                        js::get_location(&self.on_location_success, &self.on_location_error);
+                    }
                 }
 
                 true
@@ -148,9 +134,6 @@ impl Component for FrostApp {
                         }
                         if let Ok(data) = data {
                             self.try_send_weather_notification(data);
-                            if self.props.location_name.is_none() {
-                                self.props.location_name = data.location.clone();
-                            }
                         }
                     }
                 }
@@ -159,25 +142,26 @@ impl Component for FrostApp {
 
                 true
             }
-            Msg::PlaceSelected(place) => {
-                if let Some(geometry) = place.geometry {
-                    self.props.location_name = Some(place.name);
-                    let lat = geometry.location.lat;
-                    let lon = geometry.location.lng;
-                    self.link
-                        .send_message(Msg::LocationUpdate(LocationStatus::LocationRetrieved(
-                            lat, lon,
-                        )));
-                    false
-                } else {
-                    self.props.status = Some(Status::Error {
-                        title: "Invalid location".to_owned(),
-                        body: "Please select a suggestion from the dropdown list!".to_owned(),
-                    });
-                    true
+            Msg::PlaceUpdate(place) => {
+                if let PlaceStatus::PlacePicked(Some(place)) = &place {
+                    self.props.location = None;
+                    if place.geometry.is_some() {
+                        self.props.selected_place = PlaceStatus::PlacePicked(Some(place.clone()));
+                        debug!("Storing location: {:?}", place);
+                        let json = serde_json::to_string(&place).expect("can't fail");
+                        js::store(LOCATION_KEY, &json);
+                        self.check_for_weather_update();
+                    } else {
+                        self.props.status = Some(Status::Error {
+                            title: "Invalid location".to_owned(),
+                            body: "Please select a suggestion from the dropdown list!".to_owned(),
+                        });
+                    }
                 }
+                true
             }
             Msg::Refresh => {
+                self.props.location = None;
                 self.check_for_weather_update();
                 false
             }
@@ -196,7 +180,18 @@ impl Component for FrostApp {
         let geolocation_supported = self.props.geolocation_supported;
         let weather = self.props.weather.clone();
         let status = self.props.status.clone();
-        let location = self.props.location_name.clone();
+
+        let location = if let (
+            Some(LocationStatus::LocationRetrieved(_, _)),
+            WeatherDataStatus::WeatherDataRetrieved(Ok(data)),
+        ) = (&self.props.location, &weather)
+        {
+            data.location.clone()
+        } else if let PlaceStatus::PlacePicked(Some(place)) = &self.props.selected_place {
+            Some(place.name.clone())
+        } else {
+            None
+        };
         let app_link = self.link.clone();
         html! {
             <div class="app">
@@ -241,7 +236,22 @@ impl FrostApp {
     }
 
     fn check_for_weather_update(self: &mut FrostApp) {
-        if let LocationStatus::LocationRetrieved(lat, lon) = self.props.location {
+        let coordinates =
+            if let Some(LocationStatus::LocationRetrieved(lat, lon)) = self.props.location {
+                Some((lat, lon))
+            } else if let PlaceStatus::PlacePicked(Some(place)) = &self.props.selected_place {
+                let location = place
+                    .geometry
+                    .as_ref()
+                    .expect("must be set when stored in props")
+                    .location
+                    .clone();
+                Some((location.lat, location.lng))
+            } else {
+                None
+            };
+
+        if let Some((lat, lon)) = coordinates {
             match self.fetch_weather_data(lat, lon) {
                 Ok(fetch_task) => {
                     // prevent fetch task from being dropped / cancelled
@@ -329,18 +339,8 @@ pub fn main_js() -> Result<(), JsValue> {
     let geolocation_supported = js::is_geolocation_supported();
     let notifications_supported = js::are_notifications_supported();
 
-    let location = if let Some(value) = js::get_stored(LOCATION_KEY) {
-        if let Ok((lat, lon)) = serde_json::from_str(&value) {
-            debug!("Got location from web storage.");
-            LocationStatus::LocationRetrieved(lat, lon)
-        } else {
-            warn!("Stored location invalid.");
-            LocationStatus::LocationNotSet
-        }
-    } else {
-        debug!("No location stored.");
-        LocationStatus::LocationNotSet
-    };
+    let place: Option<Place> =
+        js::get_stored(LOCATION_KEY).map_or(None, |val| serde_json::from_str(&val).unwrap_or(None));
 
     let thresholds = if let Some(value) = js::get_stored(THRESHOLD_KEY) {
         if let Ok(thresholds) = serde_json::from_str(&value) {
@@ -366,12 +366,8 @@ pub fn main_js() -> Result<(), JsValue> {
 
     let weather = WeatherDataStatus::WaitingForWeatherData;
     let notification_permission = NotificationPermissionStatus::Default;
-    let status = match location {
-        LocationStatus::LocationRetrieved(_, _) => {
-            Some(Status::Info("Fetching weather data...".to_owned()))
-        }
-        _ => Some(Status::Info("Location not set.".to_owned())),
-    };
+    let status = None;
+    let location = None;
 
     let props = Props {
         location,
@@ -380,7 +376,7 @@ pub fn main_js() -> Result<(), JsValue> {
         notification_permission,
         geolocation_supported,
         notifications_supported,
-        location_name: None,
+        selected_place: PlaceStatus::PlacePicked(place),
         thresholds,
     };
 
