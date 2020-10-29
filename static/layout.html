@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frost</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="manifest" href="/manifest.json">
+    <script src="https://kit.fontawesome.com/45e785b436.js" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="../js/index.js"></script>
+    <script defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDzEu_CRdxOVnniW-4AgIElYuw4hdw7hO4&libraries=places&callback=initMap">
+        </script>
+</head>
+
+<body>
+
+    <div class="app">
+
+        <div class="header">
+            <button class="location-header">Bamberg</button>
+            <!-- <button>...</button> -->
+            <button><i class="fas fa-map-marker-alt"></i></button>
+            <div class="space"></div>
+            <!-- <button><i class="fas fa-bell-slash"></i></button> -->
+            <button><i class="fas fa-bell"></i></button>
+            <button><i class="fas fa-sync-alt"></i></button>
+            <img class="app-icon" src="./icon.png" alt="frost icon"></img>
+        </div>
+
+        <div class="records">
+            <div class="record">
+                <span class="location">Bamberg</span>
+                <span class="date">2020-10-13</span>
+                <span class="warning">WARNING: &lt; 5 °C</span>
+                <span class="temperature">Temperatures drop as low as 0.3°C</span>
+                <span class="time">between 01:00 and 3:00</span>
+            </div>
+            <div class="record">
+                <span class="location">Bamberg</span>
+                <span class="date">2020-10-13</span>
+                <span class="date2">- 2020-10-14</span>
+                <span class="danger">DANGER: &lt; 0 °C</span>
+                <span class="temperature">Temperatures drop as low as -1.2°C</span>
+                <span class="time">between 20:00 and 7:00</span>
+            </div>
+            <div class="record">
+                <span class="location">Bamberg</span>
+                <span class="date">2020-10-14</span>
+                <span class="date2">- 2020-10-15</span>
+                <span class="warning">WARNING: &lt; 5 °C</span>
+                <span class="temperature">Temperatures drop as low as 1.1°C</span>
+                <span class="time">between 23:00 and 1:00</span>
+            </div>
+        </div>
+
+
+        <div class="footer">
+            <div class="status-bar progress">Something is happening</div>
+        </div>
+    </div>
+</body>
+
+</html>

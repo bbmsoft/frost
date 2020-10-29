@@ -1,0 +1,16 @@
+{
+    "geometry": {
+        "location": {
+            "lat": 49.9091725,
+            "lng": 10.8297908
+        },
+        "viewport": {
+            "south": 49.87838074032349,
+            "west": 10.75593250437404,
+            "north": 49.92389774671403,
+            "east": 10.84752815209464
+        }
+    },
+    "name": "Honolulu",
+    "html_attributions": []
+}

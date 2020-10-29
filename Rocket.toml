@@ -1,5 +1,2 @@
 [development]
-root = "./pkg"
-
-[production]
-root = "./pkg"
+address = "0.0.0.0"

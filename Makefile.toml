@@ -1,11 +1,11 @@
 [tasks.wasm-pack-dev]
-command = "wasm-pack"
-args = ["build", "--target", "web", "--dev"]
+command = "bash"
+args = ["pack-local.sh"]
 watch = true
 
-[tasks.wasm-pack]
-command = "wasm-pack"
-args = ["build", "--target", "web"]
+[tasks.webpack]
+command = "npm"
+args = ["run", "build", "--", "--mode=production"]
 
 [tasks.run-dev]
 command = "cargo"
@@ -13,10 +13,6 @@ args = ["run"]
 watch = true
 
 [tasks.build]
-dependencies = ["wasm-pack"]
+dependencies = ["webpack"]
 command = "cargo"
 args = ["build", "--release"]
-
-[tasks.launch]
-dependencies = ["build"]
-command = "target/release/frost"

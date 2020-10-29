@@ -1,0 +1,15 @@
+{
+    "short_name": "Frost",
+    "name": "Frost",
+    "icons": [
+        {
+            "src": "icon.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ],
+    "start_url": "/",
+    "background_color": "#fff",
+    "Theme_color": "#f0f8ff",
+    "display": "standalone"
+}
