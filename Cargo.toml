@@ -24,8 +24,7 @@ opt-level = "s"
 default = ["wee_alloc"]
 
 [dependencies]
-# brtsky = "0.1"
-brtsky = { path = "../brtsky" }
+brtsky = "0.1.1"
 wasm-bindgen = { version = "0.2", features = ["nightly"] }
 wee_alloc = { version = "0.4", optional = true }
 web-sys = { version = "0.3", features = ["HtmlElement"] }
